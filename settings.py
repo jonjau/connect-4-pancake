@@ -20,8 +20,8 @@ class Settings():
         }
 
         self.tile_image_paths = {
-            0: os.path.join('assets', 'tile1.png'),
-            1: os.path.join('assets', 'tile2.png')
+            "light": os.path.join('assets', 'tile_light.png'),
+            "dark": os.path.join('assets', 'tile_dark.png')
         }
 
 
@@ -37,3 +37,4 @@ class Settings():
 
         # how fast coins fall
         self.coin_fall_speed = 10
+

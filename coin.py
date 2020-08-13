@@ -14,7 +14,7 @@ class Coin(pygame.sprite.Sprite):
 
         # load the coin image, and set its rect attribute
         image = pygame.image.load(settings.coin_image_paths[state])
-        self.image = pygame.transform.scale(image, settings.coin_size)
+        self.image = pygame.transform.scale(image, settings.cell_size)
         self.rect = self.image.get_rect()
 
         # start each new coin at the position given as input

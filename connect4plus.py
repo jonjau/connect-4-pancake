@@ -47,9 +47,9 @@ def run():
 
     # create sprites, they aren't drawn yet
     coins = pygame.sprite.Group()
-    #board = Board(settings, screen)
-    board = pygame.image.load("assets/tile1.png")
-    screen.blit(board, (20, 20))
+    board = Board(settings, screen)
+    #board = pygame.image.load("assets/tile1.png")
+    #screen.blit(board, (20, 20))
 
     clock = pygame.time.Clock()
 
@@ -59,7 +59,7 @@ def run():
 
         # redraw reddish background, and the board
         screen.fill((100, 10, 10))
-        screen.blit(board, (0, 0))
+        board.draw()
 
         # handle events
         for event in pygame.event.get():
@@ -80,8 +80,8 @@ def run():
         # update the whole display Surface
         pygame.display.flip()
 
-        # keep framerate at 60
-        clock.tick(60)
+        # keep framerate at 120
+        clock.tick(120)
 
 # if this python module is the one being run (not when it is imported)
 if __name__ == "__main__":
