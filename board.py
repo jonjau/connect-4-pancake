@@ -1,13 +1,14 @@
 import pygame
 import numpy as np
 
+
 class Board():
     """Class representing the game board."""
 
     def __init__(self, settings, screen):
         """Initialise the board and set its starting position."""
 
-        # Board owns references to screen, and relevant settings
+        # Board owns references to screen, and copies of relevant settings
         self.screen = screen
         self.n_rows = settings.n_rows
         self.n_cols = settings.n_cols
@@ -41,7 +42,7 @@ class Board():
 
         for i in range(n_rows):
             for j in range(n_cols):
-                
+
                 # arguments in order: left, top, width, height
                 rects[i][j] = pygame.Rect(
                     i * cell_length, j * cell_length,
@@ -54,7 +55,7 @@ class Board():
 
         for row in range(self.n_rows):
             for col in range(self.n_cols):
-                
+
                 # checkerboard pattern
                 if row % 2 == col % 2:
                     tile_image = self.light_tile_image
@@ -62,6 +63,3 @@ class Board():
                     tile_image = self.dark_tile_image
 
                 self.screen.blit(tile_image, self.rects[row][col].topleft)
-
-
-
