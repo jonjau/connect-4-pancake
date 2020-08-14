@@ -6,59 +6,62 @@ class Board():
 
     def __init__(self, settings, screen):
         """Initialise the board and set its starting position."""
-        # construct the parent pygame.Sprite of this Board
-        # super().__init__()
 
-        # Board owns a reference to screen and settings
+        # Board owns references to screen, and relevant settings
         self.screen = screen
-        self.settings = settings
+        self.n_rows = settings.n_rows
+        self.n_cols = settings.n_cols
+        self.cell_length = settings.cell_size[0]
 
-        self.grid = np.zeros((self.settings.n_rows, self.settings.n_cols))
+        # grid is a 2D list with 0, 1, 2:
+        # representing empty, player 1 and player 2 respectively
+        self.grid = np.zeros((settings.n_rows, settings.n_cols))
+
+        # rects is a 2D list of Rects representing tiles on the board.
         self.rects = self.init_rect_grid()
 
+        # load tile images, scaled to cell_size
         self.dark_tile_image = pygame.transform.scale(
             pygame.image.load(settings.tile_image_paths["dark"]),
             settings.cell_size)
-
         self.light_tile_image = pygame.transform.scale(
             pygame.image.load(settings.tile_image_paths["light"]),
             settings.cell_size)
 
     def init_rect_grid(self):
-        """aa"""
-        n_rows = self.settings.n_rows
-        n_cols = self.settings.n_cols
-        cell_size = self.settings.cell_size[0]
+        """
+        Initialises and returns a 2D grid of pygame.Rect's, representing
+        the tiles on the board.
+        """
+        n_rows = self.n_rows
+        n_cols = self.n_cols
+        cell_length = self.cell_length
 
         rects = [[None for i in range(n_cols)] for j in range(n_rows)]
+
         for i in range(n_rows):
             for j in range(n_cols):
+                
+                # arguments in order: left, top, width, height
                 rects[i][j] = pygame.Rect(
-                    i * cell_size, j * cell_size,
-                    cell_size, cell_size)
-
-        # print(rects[2][3].top)
-        # print(rects[2][3].left)
+                    i * cell_length, j * cell_length,
+                    cell_length, cell_length)
 
         return rects
 
     def draw(self):
-        """Draw the board at its current position, tile by tile."""
-        rects = self.rects
+        """Draws the board at its current position, tile by tile."""
 
-        for row in range(self.settings.n_rows):
-            for col in range(self.settings.n_cols):
-
-                rect = rects[row][col]
-
+        for row in range(self.n_rows):
+            for col in range(self.n_cols):
+                
+                # checkerboard pattern
                 if row % 2 == col % 2:
                     tile_image = self.light_tile_image
                 else:
                     tile_image = self.dark_tile_image
 
-                self.screen.blit(tile_image, rect.topleft)
+                self.screen.blit(tile_image, self.rects[row][col].topleft)
 
-    def drop_coin(self, row, col, player):
-        self.grid[row, col] = player
 
 

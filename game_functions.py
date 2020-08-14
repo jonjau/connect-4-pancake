@@ -1,5 +1,5 @@
 """
-Contains game logic functions. Should this be in its own file?
+Contains animation functions. different file???
 """
 
 def update_coin(coin):
@@ -11,7 +11,9 @@ def update_coin(coin):
     coin.update()
     coin.draw()
 
+
 def update_coins(coins):
     """Update all coins in the group of sprites `coins`."""
     for coin in coins:
         update_coin(coin)
+

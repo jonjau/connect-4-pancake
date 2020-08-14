@@ -1,5 +1,6 @@
 from enum import Enum
 import itertools
+import math
 
 import pygame
 
@@ -15,15 +16,14 @@ class GameState(Enum):
     PLAYER_1 = 0
     PLAYER_2 = 1
 
-GAME_STATES = itertools.cycle([0, 1])
-
 class Game:
     """Class representing the state of the game. UNUSED"""
 
-    def __init__(self):
+    def __init__(self, screen):
         """Initialise settings and game state."""
 
         self.settings = Settings()
+        self.screen = screen
 
         # whose turn it currently is; player 1 is 0, player 2 is 1.
         # initially it is player 1's turn
@@ -33,6 +33,7 @@ class Game:
         """go to the next turn."""
         self.state = next(GAME_STATES)
 
+GAME_STATES = itertools.cycle([1, 2])
 
 def run():
     """Main game function."""
@@ -69,9 +70,22 @@ def run():
                 running = False
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                # mouse click detected: create a coin at that position
+                # mouse click detected: create a coin at the top of the
+                # closest column
+
                 mouse_pos = pygame.mouse.get_pos()
-                coins.add(Coin(state, settings, screen, mouse_pos))
+                col = closest_column(board, mouse_pos)
+                row = get_next_open_row(board, col)
+
+                # ugly
+                start_pos = board.rects[0][col].center
+
+                coins.add(Coin(state, settings, screen, start_pos,
+                               board.rects[row][col].center))
+
+                drop_coin(board, col, state)
+
+                # next player's turn now
                 state = next(GAME_STATES)
 
         # update the positions of coins and draw them
@@ -83,8 +97,39 @@ def run():
         # keep framerate at 120
         clock.tick(120)
 
-# if this python module is the one being run (not when it is imported)
+
+def closest_column(board, mouse_pos):
+    """
+    Returns the column number in `board` closest to the given mouse position.
+    """
+    x_pos = mouse_pos[0]
+    col = int(math.floor(x_pos / board.cell_length))
+
+    print(f"dropped at col {col}.")
+
+    return col
+
+def get_next_open_row(board, col):
+    """
+    Finds the topmost vacant cell in column `col`, in `board`'s grid.
+    Returns that cell's corresponding row index.
+    """
+    n_rows = board.n_rows
+
+    # check row by row, from bottom row to top row ([0][0] is topleft of grid)
+    for row in range(n_rows - 1, -1, -1):
+        if board.grid[row][col] == 0:
+            return row
+
+def drop_coin(board, col, player):
+    row = get_next_open_row(board, col)
+
+    board.grid[row][col] = player
+
+    print(board.grid)
+
+
+# only run() if this python module is the one being run (not when imported)
 if __name__ == "__main__":
-    # GAME = Game()
-    # GAME.run()
     run()
+
