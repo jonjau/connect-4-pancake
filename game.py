@@ -100,3 +100,13 @@ def get_next_open_row(board, col):
             return row
 
     # FIXME: add error handling here: what if there are no open rows?
+
+def in_board(board, mouse_pos):
+    """Returns True if mouse_pos is within `board`, False otherwise."""
+    topleft_x, topleft_y = board.rects[0][0].topleft
+    bottomright_x, bottomright_y = board.rects[-1][-1].bottomright
+
+    x_pos, y_pos = mouse_pos
+
+    return topleft_x <= x_pos <= bottomright_x and \
+           topleft_y <= y_pos <= bottomright_y
