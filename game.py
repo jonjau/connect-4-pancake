@@ -60,6 +60,10 @@ class Game:
 
         print(board.grid)
 
+        # check for win after each coin drop
+        if self.check_win():
+            print(f"player {self.state} wins!")
+
         # next player's turn now
         self.next_turn()
 
@@ -73,7 +77,61 @@ class Game:
         for coin in self.coins:
             coin.draw()
 
+    def check_win(self):
+        """
+        Returns true if a winning connection exists in the board,
+        false otherwise.
+        """
+        connect_num = self.settings.connect_num
+        board = self.board
+        player = self.state
+        n_cols = board.n_cols
+        n_rows = board.n_rows
+
+        # Check horizontal
+        for c in range(n_cols - (connect_num - 1)):
+            for r in range(n_rows):
+                count = 0
+                for i in range(connect_num):
+                    if board.grid[r][c+i] == player:
+                        count += 1
+                    if count == connect_num:
+                        return True
+
+        # Check vertical
+        for c in range(n_cols):
+            for r in range(n_rows - (connect_num - 1)):
+                count = 0
+                for i in range(connect_num):
+                    if board.grid[r+i][c] == player:
+                        count += 1
+                    if count == connect_num:
+                        return True
+
+        # Check left diagonal
+        for c in range(n_cols - (connect_num - 1)):
+            for r in range(n_rows - (connect_num - 1)):
+                count = 0
+                for i in range(connect_num):
+                    if board.grid[r+i][c+i] == player:
+                        count += 1
+                    if count == connect_num:
+                        return True
+
+        # Check right diagonal
+        for c in range(n_cols - (connect_num - 1)):
+            for r in range((connect_num - 1), n_rows):
+                count = 0
+                for i in range(connect_num):
+                    if board.grid[r-i][c+i] == player:
+                        count += 1
+                    if count == connect_num:
+                        return True
+        return False
+
+
 # functions that are less closely tied to game objects go below
+
 
 def closest_column(board, mouse_pos):
     """

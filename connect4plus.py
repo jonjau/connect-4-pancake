@@ -1,7 +1,14 @@
 import pygame
+import pygame_gui
 
 from settings import Settings
 from game import Game
+from music import Music
+from menu import Menu
+
+# mouse button constants as defined by pygame
+LEFT_MOUSE_BUTTON = 1
+RIGHT_MOUSE_BUTTON = 2
 
 
 def run():
@@ -18,23 +25,37 @@ def run():
 
     game = Game(settings, screen)
 
-    # main game loop
-    running = True
-    while running:
+    music = Music(settings)
 
-        game.draw_background()
+    pygame.mixer.init()
+
+    # create the main menu and run the menu event loop
+    menu = Menu(settings, screen, clock)
+    menu.show()
+
+    # main game loop
+    is_running = True
+    while is_running:
+
+        # keep framerate at 120 (not sure if this works)
+        clock.tick(120)
 
         # handle events
         for event in pygame.event.get():
 
             if event.type == pygame.QUIT:
                 # close window clicked: stop the game
-                running = False
+                is_running = False
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                # mouse click detected: drop coin
+            if (event.type == pygame.MOUSEBUTTONDOWN and
+                    event.button == LEFT_MOUSE_BUTTON):
+                # left mouse click detected: drop coin
                 mouse_pos = pygame.mouse.get_pos()
                 game.drop_coin(mouse_pos)
+                music.play("coin_drop")
+
+        # draw background before coins
+        game.draw_background()
 
         # update coins' positions and draw them
         game.update_coins()
@@ -42,9 +63,6 @@ def run():
 
         # update the whole display Surface
         pygame.display.flip()
-
-        # keep framerate at 120 (not sure if this works)
-        clock.tick(120)
 
 
 # only run() if this python module is the one being run (not when imported)
