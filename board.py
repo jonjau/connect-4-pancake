@@ -2,7 +2,7 @@ import pygame
 import numpy as np
 
 
-class Board():
+class Board:
     """Class representing the game board."""
 
     def __init__(self, settings, screen):
@@ -62,5 +62,7 @@ class Board():
                 else:
                     tile_image = self.dark_tile_image
 
-                # FIXME: remember to fix this in master
-                self.screen.blit(tile_image, self.rects[row][col].topleft[::-1])
+                # TODO: this was changed: added [::-1]
+                # there was a visual bug when board size is non-square
+                self.screen.blit(
+                    tile_image, self.rects[row][col].topleft[::-1])

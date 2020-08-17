@@ -1,9 +1,7 @@
 import os
 
-import pygame
 
-
-class Settings():
+class Settings:
     """A class containing settings for the game."""
 
     def __init__(self):
@@ -19,11 +17,7 @@ class Settings():
             "light": os.path.join('assets', 'tile_light.png'),
             "dark": os.path.join('assets', 'tile_dark.png')
         }
-
-        # FIXME: unused
-        self.board_image_path = os.path.join('assets', 'board.png')
-
-        self.logo_image_path = os.path.join('assets', 'logo.png')
+        self.title_image_path = os.path.join('assets', 'title.png')
 
         # audio file paths
         self.music_path = {
@@ -43,10 +37,9 @@ class Settings():
             self.n_cols * self.coin_length, self.n_rows * self.coin_length)
         self.coin_fall_speed = 10
 
-        # interface settings
-        self.ui_width = 200
+        # how many coins a player needs to connect to win
+        self.connect_num = 4
 
         # screen settings: for now the board takes up the whole game screen
-        self.screen_size = (
-            self.board_size[0] + self.ui_width, self.board_size[1])
+        self.screen_size = self.board_size
         self.bg_color = (230, 230, 230)
