@@ -7,10 +7,13 @@ import pygame_gui as gui
 
 
 class Menu:
-    """Class representing the main menu."""
+    """
+    Class representing the main menu. Contains other pages as members.
+    Run its event loop with `show()`.
+    """
 
     def __init__(self, settings, screen, clock):
-        """Initialise the menu's settings, layout, and UI elements."""
+        """Initialise the menu's settings, pages, layout, and UI elements."""
 
         # UIManager keeps track of pygame_gui elements
         self.ui_manager = gui.UIManager(settings.screen_size)
@@ -19,8 +22,8 @@ class Menu:
 
         self.bg_color = settings.bg_color
         self.fonts = {
-            "large": pygame.freetype.SysFont(None, 32),
-            "small": pygame.freetype.SysFont(None, 16),
+            "large": pygame.freetype.SysFont(name=None, size=32),
+            "small": pygame.freetype.SysFont(name=None, size=16),
 
         }
         title_image = pygame.image.load(settings.title_image_path)
@@ -36,8 +39,8 @@ class Menu:
         self.containers = self.init_container_rects()
         self.button_rects = self.init_button_rects()
 
-        self.tutorial = Tutorial(settings, screen, clock,
-                                 self.containers, self.fonts)
+        # other pages are components of menu, they share much of menu's state
+        self.tutorial = Tutorial(settings, screen, clock, self.containers)
         self.settings_menu = SettingsMenu(settings, screen, clock,
                                           self.containers, self.fonts)
 
@@ -90,8 +93,8 @@ class Menu:
         # determined by the buttons' width and it has padding on top and bottom
         buttons = menu.inflate(self.button_width - menu.width,
                                -self.button_vspace)
-        
-        # container for elements at the corners
+
+        # container for elements at the corners, with margins
         margin = self.button_vspace
         topleft = pygame.Rect((0, 0), self.corner_button_size)
         topleft.topleft = (margin, margin)
@@ -114,7 +117,8 @@ class Menu:
 
     def init_button_rects(self):
         """
-        Initialises and returns a dictionary of `Rect`'s representing buttons.
+        Initialises and returns a dictionary of `Rect`'s representing
+        positions of buttons.
         """
         topleft = self.containers['buttons'].topleft
         button_size = self.button_size
@@ -169,32 +173,37 @@ class Menu:
 
 
 class Tutorial:
-    def __init__(self, settings, screen, clock, containers, fonts):
+    """
+    Class representing tutorial menu page. Run its event loop with `show()`.
+    """
+
+    def __init__(self, settings, screen, clock, containers):
+        """Initialise the tutorial page's tutorial image and UI elements."""
+
         self.ui_manager = gui.UIManager(settings.screen_size)
+
+        # shared state with main menu
         self.screen = screen
         self.clock = clock
-
         self.bg_color = settings.bg_color
-        tutorial_image = pygame.image.load(settings.tile_image_paths["light"])
 
-        root = pygame.Rect((0, 0), self.screen.get_size())
+        # TODO: placeholder tutorial image
+        tutorial_image = pygame.image.load(settings.title_image_path)
 
-        # tutorial image takes up the whole window
+        # create UI elements: tutorial image takes up the whole window
         self.tutorial = gui.elements.UIImage(
-            relative_rect=root,
+            relative_rect=containers['root'],
             image_surface=tutorial_image,
             manager=self.ui_manager)
-
-        # fixed button text and size, button is anchored to bottom right corner
-        button_rect = pygame.Rect(0, 0, 200, 50)
-        button_rect.bottomright = (-30, -30)
 
         self.back_button = gui.elements.UIButton(
             relative_rect=containers['bottomright'],
             text='Back to menu',
             manager=self.ui_manager)
 
+
     def show(self):
+        """Starts the tutorial page event loop."""
 
         ui_manager = self.ui_manager
 
@@ -223,49 +232,61 @@ class Tutorial:
 
 
 class SettingsMenu:
+    """
+    Class representing settings menu page. Run its event loop with `show()`.
+    """
+
     def __init__(self, settings, screen, clock, containers, fonts):
+        """Initialise the setting page's layout and UI elements."""
+
         self.ui_manager = gui.UIManager(settings.screen_size)
+
+        # shared state with main menu
         self.settings = settings
         self.screen = screen
         self.clock = clock
-
         self.bg_color = settings.bg_color
         self.containers = containers
 
-        # fixed button text and size, button is anchored to bottom right corner
-        button_rect = pygame.Rect(0, 0, 200, 50)
-        button_rect.bottomright = (-30, -30)
-
-        self.title, _ = fonts["large"].render("Settings")
+        # render text labels, not drawn yet. These are non-pygame_gui.
         self.labels = {
             'title': fonts['large'].render('Settings')[0],
-            'rows': fonts['small'].render('number of rows')[0],
-            'cols': fonts['small'].render('number of columns')[0],
-            'coins': fonts['small'].render('number of coins needed to win')[0],
+            'rows': fonts['small'].render('Number of rows:')[0],
+            'cols': fonts['small'].render('Number of columns:')[0],
+            'coins': fonts['small'].render('Number of coins needed to win:')[0],
         }
 
+        # slightly magical, but not tied to program logic: purely for layout
         self.input_size = (0.5 * screen.get_width(), 50)
         self.input_vspace = 50
+        self.input_col_ratio = 0.8
 
+        # initialise "settings menu"-specific element layout
         self.input_rects = self.init_input_rects()
 
+        # create menu elements, these will be drawn every frame
+        # for n_rows, n_cols, and connect_num allow numbers 1 to 99,
+        # 0 will lead to no-op when saved
         self.rows_input = gui.elements.ui_text_entry_line.UITextEntryLine(
             relative_rect=self.input_rects['rows'][1],
             manager=self.ui_manager)
         self.rows_input.set_allowed_characters('numbers')
         self.rows_input.set_text_length_limit(limit=2)
+        self.rows_input.set_text(str(settings.n_rows))
 
         self.cols_input = gui.elements.ui_text_entry_line.UITextEntryLine(
             relative_rect=self.input_rects['cols'][1],
             manager=self.ui_manager)
         self.cols_input.set_allowed_characters('numbers')
         self.cols_input.set_text_length_limit(limit=2)
+        self.cols_input.set_text(str(settings.n_cols))
 
         self.coins_input = gui.elements.ui_text_entry_line.UITextEntryLine(
             relative_rect=self.input_rects['coins'][1],
             manager=self.ui_manager)
         self.coins_input.set_allowed_characters('numbers')
         self.coins_input.set_text_length_limit(limit=2)
+        self.coins_input.set_text(str(settings.connect_num))
 
         self.save_button = gui.elements.UIButton(
             relative_rect=containers['bottomleft'],
@@ -278,6 +299,10 @@ class SettingsMenu:
             manager=self.ui_manager)
 
     def init_input_rects(self):
+        """
+        Initialises and returns a dictionary of `Rect`'s representing
+        positions of inputs.
+        """
         topleft = self.containers['buttons'].topleft
         input_size = self.input_size
         vspace = self.input_vspace
@@ -288,11 +313,40 @@ class SettingsMenu:
         # need to add vertical spacing between inputs
         for i, label in enumerate(labels):
             rects[label] = split_rects(pygame.Rect(
-                (topleft[0], topleft[1] + i * vspace), input_size), 0.8)
+                (topleft[0], topleft[1] + i * vspace),
+                input_size),self.input_col_ratio)
 
         return rects
 
+    def save_settings(self):
+        """
+        Saves the current settings set in the inputs, modifying
+        the game's `Settings` object.
+        """
+        n_rows = int(self.rows_input.get_text())
+        n_cols = int(self.cols_input.get_text())
+        connect_num = int(self.coins_input.get_text())
+
+        # don't save if any number is 0, otherwise there'll be division by 0
+        if n_rows == 0 or n_cols == 0 or connect_num == 0:
+            return
+
+        # modify connect win condition, and board size (hence screen size too)
+        self.settings.connect_num = connect_num
+        self.settings.set_board_size(n_rows, n_cols)
+
+    def draw_labels(self):
+        """
+        Draw onto the screen the title and input labels of the settings menu,
+        all of which are not managed by `pygame_gui`.
+        """
+        self.screen.blit(self.labels['title'], self.containers['topleft'])
+        self.screen.blit(self.labels['rows'], self.input_rects['rows'][0])
+        self.screen.blit(self.labels['cols'], self.input_rects['cols'][0])
+        self.screen.blit(self.labels['coins'], self.input_rects['coins'][0])
+
     def show(self):
+        """Starts the settings page event loop."""
 
         ui_manager = self.ui_manager
 
@@ -300,12 +354,8 @@ class SettingsMenu:
         while is_in_settings:
             time_delta = self.clock.tick(120)/1000.0
 
-            # draw background and page title on topleft
+            # draw background
             self.screen.fill(self.bg_color)
-            self.screen.blit(self.labels['title'], self.containers['topleft'])
-            self.screen.blit(self.labels['rows'], self.input_rects['rows'][0])
-            self.screen.blit(self.labels['cols'], self.input_rects['cols'][0])
-            self.screen.blit(self.labels['coins'], self.input_rects['coins'][0])
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -318,22 +368,26 @@ class SettingsMenu:
                         if event.ui_element == self.back_button:
                             is_in_settings = False
                         elif event.ui_element == self.save_button:
-                            self.settings.set_board_size(
-                                self.settings.n_cols + 1,
-                                self.settings.n_rows + 1
-                            )
-                            print(self.settings.n_cols)
+                            self.save_settings()
 
                 # let pygame_gui handle internal UI events
                 ui_manager.process_events(event)
 
             ui_manager.update(time_delta)
             ui_manager.draw_ui(self.screen)
+            
+            # draw non-pygame_gui text labels
+            self.draw_labels()
 
             pygame.display.flip()
 
 
 def split_rects(rect, ratio):
+    """
+    Splits the given `pygame.Rect` `rect` horizontally into two Rects, with
+    the left one having a width of `ratio` * `rect`'s width.
+    Returns the left and right Rects as a tuple, in that order.
+    """
     rect1 = rect.copy()
     rect2 = rect.copy()
 
@@ -341,4 +395,4 @@ def split_rects(rect, ratio):
     rect2.width = rect.width * (1 - ratio)
     rect2.x += rect1.width
 
-    return (rect1, rect2)
+    return rect1, rect2

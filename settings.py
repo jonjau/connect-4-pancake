@@ -45,7 +45,11 @@ class Settings:
         self.bg_color = (230, 230, 230)
     
     def set_board_size(self, n_rows, n_cols):
-        """"""
+        """
+        Sets the board size to `n_rows` x `n_cols`,
+        adjusting coin length so that the board size (hence screen size)
+        is not changed by much.
+        """
         coin_length = int(min(
             self.board_size[0] / n_cols, self.board_size[1] / n_rows))
         

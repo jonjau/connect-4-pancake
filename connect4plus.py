@@ -31,7 +31,7 @@ def run():
     menu = Menu(settings, screen, clock)
     menu.show()
 
-    # update screen size to reflect new settings
+    # update screen size to reflect new settings (if modified at all)
     screen = pygame.display.set_mode(settings.screen_size)
 
     game = Game(settings, screen)
@@ -56,7 +56,7 @@ def run():
                 mouse_pos = pygame.mouse.get_pos()
                 game.drop_coin(mouse_pos)
                 # FIXME: laggy
-                #music.play("coin_drop")
+                music.play("coin_drop")
 
         # draw background before coins
         game.draw_background()
