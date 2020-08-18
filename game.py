@@ -49,7 +49,11 @@ class Game:
 
         # coin will fall to the next open row
         row = get_next_open_row(board, col)
-        end_pos = board.rects[row][col].center
+        try:
+            end_pos = board.rects[row][col].center
+        except TypeError:
+            # if row is full: do nothing
+            return
 
         # add it to the group of coin sprites
         self.coins.add(Coin(self.settings, self.screen, self.state,
@@ -157,4 +161,6 @@ def get_next_open_row(board, col):
         if board.grid[row][col] == 0:
             return row
 
-    # FIXME: add error handling here: what if there are no open rows?
+    # so pylint doesn't complain
+    return None
+

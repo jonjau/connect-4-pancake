@@ -62,7 +62,4 @@ class Board:
                 else:
                     tile_image = self.dark_tile_image
 
-                # TODO: this was changed: added [::-1]
-                # there was a visual bug when board size is non-square
-                self.screen.blit(
-                    tile_image, self.rects[row][col].topleft[::-1])
+                self.screen.blit(tile_image, self.rects[row][col].topleft[::-1])

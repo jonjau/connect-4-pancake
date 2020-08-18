@@ -23,8 +23,6 @@ def run():
 
     clock = pygame.time.Clock()
 
-    game = Game(settings, screen)
-
     music = Music(settings)
 
     pygame.mixer.init()
@@ -32,6 +30,11 @@ def run():
     # create the main menu and run the menu event loop
     menu = Menu(settings, screen, clock)
     menu.show()
+
+    # update screen size to reflect new settings
+    screen = pygame.display.set_mode(settings.screen_size)
+
+    game = Game(settings, screen)
 
     # main game loop
     is_running = True
@@ -52,7 +55,8 @@ def run():
                 # left mouse click detected: drop coin
                 mouse_pos = pygame.mouse.get_pos()
                 game.drop_coin(mouse_pos)
-                music.play("coin_drop")
+                # FIXME: laggy
+                #music.play("coin_drop")
 
         # draw background before coins
         game.draw_background()

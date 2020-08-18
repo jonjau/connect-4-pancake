@@ -1,5 +1,5 @@
 import os
-
+import math
 
 class Settings:
     """A class containing settings for the game."""
@@ -43,3 +43,18 @@ class Settings:
         # screen settings: for now the board takes up the whole game screen
         self.screen_size = self.board_size
         self.bg_color = (230, 230, 230)
+    
+    def set_board_size(self, n_rows, n_cols):
+        """"""
+        coin_length = int(min(
+            self.board_size[0] / n_cols, self.board_size[1] / n_rows))
+        
+        self.cell_size = (coin_length, coin_length)
+        self.coin_length = coin_length
+        self.n_rows = n_rows
+        self.n_cols = n_cols
+
+        self.board_size = (
+            self.n_cols * self.coin_length, self.n_rows * self.coin_length)
+        
+        self.screen_size = self.board_size
