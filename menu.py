@@ -134,9 +134,9 @@ class Menu:
 
         return rects
 
-    def show(self):
+    def show(self, music):
         """Starts the main menu event loop."""
-
+        # music.play('menu')
         ui_manager = self.ui_manager
 
         is_in_menu = True
@@ -200,7 +200,6 @@ class Tutorial:
             relative_rect=containers['bottomright'],
             text='Back to menu',
             manager=self.ui_manager)
-
 
     def show(self):
         """Starts the tutorial page event loop."""
@@ -314,7 +313,7 @@ class SettingsMenu:
         for i, label in enumerate(labels):
             rects[label] = split_rects(pygame.Rect(
                 (topleft[0], topleft[1] + i * vspace),
-                input_size),self.input_col_ratio)
+                input_size), self.input_col_ratio)
 
         return rects
 
@@ -375,7 +374,7 @@ class SettingsMenu:
 
             ui_manager.update(time_delta)
             ui_manager.draw_ui(self.screen)
-            
+
             # draw non-pygame_gui text labels
             self.draw_labels()
 
