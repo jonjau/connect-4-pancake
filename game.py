@@ -2,6 +2,8 @@ import itertools
 import math
 import sys
 
+import numpy as np
+
 import pygame
 from pygame.locals import *
 
@@ -39,7 +41,7 @@ class Game:
 
         # create game objects, they aren't drawn yet
         self.coins = pygame.sprite.Group()
-        self.board = Board(settings, screen)
+        self.board = Board(settings, screen, 0, 0)
 
     def next_turn(self):
         """Go to the next turn."""
@@ -57,7 +59,10 @@ class Game:
 
         # coin is spawned at the top of the column closest to the mouse
         col = closest_column(board, mouse_pos)
-        start_pos = board.rects[0][col].center
+        try:
+            start_pos = board.rects[0][col].center
+        except IndexError:
+            return
 
         # coin will fall to the next open row
         row = get_next_open_row(board, col)
@@ -145,7 +150,50 @@ class Game:
                         return True
         return False
 
+    def rotate_board(self, clockwise):
+        """
+        Rotate the current board clockwise or anticlockwise, then replaces
+        this `Game`'s board and coins to reflect the new state.
+        Additionally updates game-wide settings and the screen. 
+        """
+        if clockwise:
+            rotated_grid = np.rot90(self.board.grid, k=1, axes=(1, 0))
+        else:
+            rotated_grid = np.rot90(self.board.grid, k=1, axes=(0, 1))
+
+        n_rows, n_cols = rotated_grid.shape
+
+        # adjust game-wide settings, then
+        # update screen to reflect new board dimensions
+        settings = self.settings
+        settings.set_board_size(n_rows=n_rows, n_cols=n_cols, adjust=False)
+        self.screen = pygame.display.set_mode(self.settings.screen_size)
+
+        # reset game board and coins
+        board = Board(self.settings, self.screen, 0, 0)
+        self.board = board
+        self.coins = pygame.sprite.Group()
+
+        # from the bottom row up: drop the floating coins
+        for row in range(n_rows - 1, -1, -1):
+            for col in range(n_cols):
+
+                player = rotated_grid[row][col]
+
+                if player != 0:
+                    rotated_grid[row][col] = 0
+
+                    # find where to drop to, and create a coin to drop there
+                    landing_row = get_next_open_row(board, col)
+
+                    self.coins.add(Coin(self.settings, self.screen, player,
+                                        board.rects[row][col].center,
+                                        board.rects[landing_row][col].center))
+                    # update grid
+                    board.grid[landing_row][col] = player
+
     def run(self):
+        """Run the game loop, then show game over screen after the game ends."""
 
         clock = self.clock
         music = self.music
@@ -154,6 +202,7 @@ class Game:
 
         angle = 0
         target_angle = 0
+        is_rotating = False
 
         # main game loop
         is_running = True
@@ -184,12 +233,16 @@ class Game:
                         target_angle -= 90
                         angle = target_angle + 90
                         increment = -2.5
-                    if pressed_keys[K_w]:
+                        is_rotating = True
+
+                    elif pressed_keys[K_w]:
                         target_angle += 90
                         angle = target_angle - 90
                         increment = 2.5
+                        is_rotating = True
 
             # draw background before coins
+            # self.update_background()
             self.draw_background()
 
             # update coins' positions and draw them
@@ -207,17 +260,29 @@ class Game:
             # changes for a rectangular board
             blitRotate(screen, sub, pos, pos, angle)
 
-            if angle != target_angle:
+            if angle == target_angle:
+                if is_rotating:
+                    # just finished a rotation
+                    clockwise = target_angle < 0
+
+                    # reset rotation variables
+                    is_rotating = False
+                    target_angle = 0
+                    angle = 0
+
+                    self.rotate_board(clockwise)
+            else:
                 angle += increment
 
             # update the whole display Surface
             pygame.display.flip()
-        
+
         # exited game loop: someone has won, so say that they've won
         self.game_over.set_winner(self.state)
         self.game_over.show()
 
 # functions that are less closely tied to game objects go below
+
 
 def blitRotate(surf, image, pos, originPos, angle):
 
