@@ -1,10 +1,17 @@
 import itertools
 import math
+import sys
 
 import pygame
+from pygame.locals import *
 
 from coin import Coin
 from board import Board
+from interface import GameOver
+
+# mouse button constants as defined by pygame
+LEFT_MOUSE_BUTTON = 1
+RIGHT_MOUSE_BUTTON = 2
 
 # whose turn it currently is; player 1 is 1, player 2 is 2.
 GAME_STATES = itertools.cycle([1, 2])
@@ -15,12 +22,17 @@ class Game:
     Class containing the game state, objects and functions that modify them.
     """
 
-    def __init__(self, settings, screen):
+    def __init__(self, settings, screen, music, clock):
         """Initialise settings and game state."""
 
         # Game owns a reference to settings and screen
         self.settings = settings
         self.screen = screen
+
+        self.music = music
+        self.clock = clock
+
+        self.game_over = GameOver(settings, screen, clock)
 
         # initially it is player 1's turn
         self.state = next(GAME_STATES)
@@ -133,8 +145,109 @@ class Game:
                         return True
         return False
 
+    def run(self):
+
+        clock = self.clock
+        music = self.music
+        screen = self.screen
+        settings = self.settings
+
+        angle = 0
+        target_angle = 0
+
+        # main game loop
+        is_running = True
+        while is_running:
+
+            # keep framerate at 120 (not sure if this works)
+            clock.tick(120)
+
+            # handle events
+            for event in pygame.event.get():
+
+                if event.type == pygame.QUIT:
+                    # close window clicked: stop the game
+                    sys.exit()
+
+                if (event.type == pygame.MOUSEBUTTONDOWN and
+                        event.button == LEFT_MOUSE_BUTTON):
+                    # left mouse click detected: drop coin
+                    mouse_pos = pygame.mouse.get_pos()
+                    self.drop_coin(mouse_pos)
+                    music.play("coin_drop")
+                    if self.check_win():
+                        is_running = False
+
+                if (event.type == pygame.KEYDOWN):
+                    pressed_keys = pygame.key.get_pressed()
+                    if pressed_keys[K_q]:
+                        target_angle -= 90
+                        angle = target_angle + 90
+                        increment = -2.5
+                    if pressed_keys[K_w]:
+                        target_angle += 90
+                        angle = target_angle - 90
+                        increment = 2.5
+
+            # draw background before coins
+            self.draw_background()
+
+            # update coins' positions and draw them
+            self.update_coins()
+            self.draw_coins()
+
+            # rect and sub screenshots the entire board as it currently is
+            rect = pygame.Rect((0, 0), settings.board_size)
+            sub = screen.subsurface(rect)
+            pos = (settings.board_size[0]//2, settings.board_size[1]//2)
+
+            # blitRotate was completely "inspired" by the post on StackOverflow
+            # pos is inputted twice to center the spinning axis and the center
+            # of the board, THIS ONLY WORKS FOR A SQUARE BOARD, will need
+            # changes for a rectangular board
+            blitRotate(screen, sub, pos, pos, angle)
+
+            if angle != target_angle:
+                angle += increment
+
+            # update the whole display Surface
+            pygame.display.flip()
+        
+        # exited game loop: someone has won, so say that they've won
+        self.game_over.set_winner(self.state)
+        self.game_over.show()
 
 # functions that are less closely tied to game objects go below
+
+def blitRotate(surf, image, pos, originPos, angle):
+
+    # calcaulate the axis aligned bounding box of the rotated image
+    w, h = image.get_size()
+    box = [pygame.math.Vector2(p) for p in [(0, 0), (w, 0), (w, -h), (0, -h)]]
+    box_rotate = [p.rotate(angle) for p in box]
+    min_box = (min(box_rotate, key=lambda p: p[0])[
+               0], min(box_rotate, key=lambda p: p[1])[1])
+    max_box = (max(box_rotate, key=lambda p: p[0])[
+               0], max(box_rotate, key=lambda p: p[1])[1])
+
+    # calculate the translation of the pivot
+    pivot = pygame.math.Vector2(originPos[0], -originPos[1])
+    pivot_rotate = pivot.rotate(angle)
+    pivot_move = pivot_rotate - pivot
+
+    # calculate the upper left origin of the rotated image
+    origin = (pos[0] - originPos[0] + min_box[0] - pivot_move[0],
+              pos[1] - originPos[1] - max_box[1] + pivot_move[1])
+
+    # get a rotated image
+    rotated_image = pygame.transform.rotate(image, angle)
+
+    # rotate and blit the image
+    surf.blit(rotated_image, origin)
+
+    # draw rectangle around the image
+    pygame.draw.rect(surf, (255, 0, 0),
+                     (*origin, *rotated_image.get_size()), 2)
 
 
 def closest_column(board, mouse_pos):
@@ -163,4 +276,3 @@ def get_next_open_row(board, col):
 
     # so pylint doesn't complain
     return None
-
