@@ -60,7 +60,6 @@ class Settings:
         self.n_rows = n_rows
         self.n_cols = n_cols
         
-        #n_cells_on_side = max(n_rows, n_cols)
         self.board_size = (
             n_cols * self.coin_length,
             n_rows * self.coin_length)

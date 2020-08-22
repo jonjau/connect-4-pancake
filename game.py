@@ -150,16 +150,18 @@ class Game:
                         return True
         return False
 
-    def rotate_board(self, clockwise):
+    def rotate_board(self, angle):
         """
         Rotate the current board clockwise or anticlockwise, then replaces
         this `Game`'s board and coins to reflect the new state.
-        Additionally updates game-wide settings and the screen. 
+        Additionally updates game-wide settings and the screen.
         """
-        if clockwise:
+        if angle == -90:
             rotated_grid = np.rot90(self.board.grid, k=1, axes=(1, 0))
-        else:
+        elif angle == 90:
             rotated_grid = np.rot90(self.board.grid, k=1, axes=(0, 1))
+        else:
+            rotated_grid = np.rot90(self.board.grid, k=2, axes=(0, 1))
 
         n_rows, n_cols = rotated_grid.shape
 
@@ -191,6 +193,9 @@ class Game:
                                         board.rects[landing_row][col].center))
                     # update grid
                     board.grid[landing_row][col] = player
+        
+        # next player's turn
+        self.next_turn()
 
     def run(self):
         """Run the game loop, then show game over screen after the game ends."""
@@ -241,6 +246,13 @@ class Game:
                         increment = 2.5
                         is_rotating = True
 
+                    elif pressed_keys[K_e]:
+                        target_angle += 180
+                        angle = target_angle - 180
+                        # rotate twice as fast
+                        increment = 5.0
+                        is_rotating = True
+
             # draw background before coins
             # self.update_background()
             self.draw_background()
@@ -262,15 +274,12 @@ class Game:
 
             if angle == target_angle:
                 if is_rotating:
-                    # just finished a rotation
-                    clockwise = target_angle < 0
+                    self.rotate_board(target_angle)
 
                     # reset rotation variables
                     is_rotating = False
                     target_angle = 0
                     angle = 0
-
-                    self.rotate_board(clockwise)
             else:
                 angle += increment
 
@@ -278,8 +287,9 @@ class Game:
             pygame.display.flip()
 
         # exited game loop: someone has won, so say that they've won
-        self.game_over.set_winner(self.state)
-        self.game_over.show()
+        game_over = GameOver(settings, screen, clock)
+        game_over.set_winner(self.state)
+        game_over.show()
 
 # functions that are less closely tied to game objects go below
 

@@ -59,7 +59,6 @@ class GameOver:
         # text container is around the top of the game over window, with padding
         text = window.inflate(-margin, -margin)
         text.topleft = (window.y + 0.5 * margin, window.x + 0.5 * margin)
-        text.height /= 2
 
         # button container is around the mid bottom of the game over window,
         # with padding
