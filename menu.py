@@ -136,7 +136,7 @@ class Menu:
 
     def show(self, music):
         """Starts the main menu event loop."""
-        music.play('menu')
+        #music.play('menu')
         ui_manager = self.ui_manager
 
         is_in_menu = True

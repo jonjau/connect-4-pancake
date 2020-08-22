@@ -1,6 +1,7 @@
 import itertools
 import math
 import sys
+import time
 
 import numpy as np
 
@@ -85,8 +86,6 @@ class Game:
         if self.check_win():
             print(f"player {self.state} wins!")
 
-        # next player's turn now
-        self.next_turn()
 
     def update_coins(self):
         """Update positions of all coins in play."""
@@ -193,9 +192,6 @@ class Game:
                                         board.rects[landing_row][col].center))
                     # update grid
                     board.grid[landing_row][col] = player
-        
-        # next player's turn
-        self.next_turn()
 
     def run(self):
         """Run the game loop, then show game over screen after the game ends."""
@@ -231,6 +227,8 @@ class Game:
                     music.play("coin_drop")
                     if self.check_win():
                         is_running = False
+                    else:
+                        self.next_turn()
 
                 if (event.type == pygame.KEYDOWN):
                     pressed_keys = pygame.key.get_pressed()
@@ -252,6 +250,7 @@ class Game:
                         # rotate twice as fast
                         increment = 5.0
                         is_rotating = True
+
 
             # draw background before coins
             # self.update_background()
@@ -280,6 +279,11 @@ class Game:
                     is_rotating = False
                     target_angle = 0
                     angle = 0
+
+                    if self.check_win():
+                        is_running = False
+                    else:
+                        self.next_turn()
             else:
                 angle += increment
 
@@ -321,8 +325,8 @@ def blitRotate(surf, image, pos, originPos, angle):
     surf.blit(rotated_image, origin)
 
     # draw rectangle around the image
-    pygame.draw.rect(surf, (255, 0, 0),
-                     (*origin, *rotated_image.get_size()), 2)
+    # pygame.draw.rect(surf, (255, 0, 0),
+    #                  (*origin, *rotated_image.get_size()), 2)
 
 
 def closest_column(board, mouse_pos):
