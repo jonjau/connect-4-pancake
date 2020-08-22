@@ -5,8 +5,10 @@ import numpy as np
 class Board:
     """Class representing the game board."""
 
-    def __init__(self, settings, screen):
+    def __init__(self, settings, screen, start_angle, end_angle):
         """Initialise the board and set its starting position."""
+
+        self.settings = settings
 
         # Board owns references to screen, and copies of relevant settings
         self.screen = screen
@@ -21,6 +23,14 @@ class Board:
         # rects is a 2D list of Rects representing tiles on the board.
         self.rects = self.init_rect_grid()
 
+        self.rect = pygame.Rect((0, 0), settings.board_size)
+        #self.image = screen.subsurface(self.rect)
+        self.pos = (settings.board_size[0]//2, settings.board_size[1]//2)
+
+        self.angle = start_angle
+        self.end_angle = end_angle
+        self.is_rotating = False
+
         # load tile images, scaled to cell_size
         self.dark_tile_image = pygame.transform.scale(
             pygame.image.load(settings.tile_image_paths["dark"]),
@@ -28,6 +38,8 @@ class Board:
         self.light_tile_image = pygame.transform.scale(
             pygame.image.load(settings.tile_image_paths["light"]),
             settings.cell_size)
+
+        self.image = self.init_board_image()
 
     def init_rect_grid(self):
         """
@@ -50,9 +62,12 @@ class Board:
 
         return rects
 
-    def draw(self):
-        """Draws the board at its current position, tile by tile."""
-
+    def init_board_image(self):
+        """
+        Draws the board at its current position, tile by tile, then
+        returns that image as a `pygame.Surface`.
+        """
+        image = pygame.Surface(self.settings.board_size)
         for row in range(self.n_rows):
             for col in range(self.n_cols):
 
@@ -62,7 +77,11 @@ class Board:
                 else:
                     tile_image = self.dark_tile_image
 
-                # TODO: this was changed: added [::-1]
-                # there was a visual bug when board size is non-square
-                self.screen.blit(
-                    tile_image, self.rects[row][col].topleft[::-1])
+                image.blit(tile_image, self.rects[row][col].topleft[::-1])
+
+        return image
+
+    def draw(self):
+        """Blit the board to the screen at its current position."""
+
+        self.screen.blit(self.image, self.rect)
