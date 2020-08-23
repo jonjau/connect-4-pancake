@@ -24,7 +24,7 @@ class Interface:
         self.containers = self.init_containers()
 
         self.element_width = self.containers['interface'].width
-        self.element_height = 50
+        self.element_height = 40
         self.element_vspace = self.element_height * 1.2
         self.element_size = (self.element_width, self.element_height)
 

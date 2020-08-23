@@ -1,4 +1,5 @@
 import sys
+import time
 
 import pygame
 import pygame.freetype
@@ -31,7 +32,7 @@ class Menu:
 
         # menu layout settings
         self.button_width = 0.3 * screen.get_width()
-        self.button_height = 50
+        self.button_height = 40
         self.button_vspace = self.button_height * 1.2
         self.button_size = (self.button_width, self.button_height)
         self.corner_button_size = (0.5 * self.button_width, self.button_height)
@@ -56,9 +57,14 @@ class Menu:
             text='Play game in sandbox mode',
             manager=self.ui_manager)
 
-        self.play_ai_button = gui.elements.UIButton(
-            relative_rect=self.button_rects['play_ai'],
-            text='Play game against AI',
+        self.play_ai_easy_button = gui.elements.UIButton(
+            relative_rect=self.button_rects['play_ai_easy'],
+            text='Play game against easy AI',
+            manager=self.ui_manager)
+
+        self.play_ai_hard_button = gui.elements.UIButton(
+            relative_rect=self.button_rects['play_ai_hard'],
+            text='Play game against hard AI',
             manager=self.ui_manager)
 
         self.tutorial_button = gui.elements.UIButton(
@@ -131,7 +137,8 @@ class Menu:
         vspace = self.button_vspace
 
         rects = {}
-        labels = ['play_sandbox', 'play_ai', 'tutorial', 'settings', 'quit']
+        labels = ['play_sandbox', 'play_ai_easy',
+                  'play_ai_hard', 'tutorial', 'settings', 'quit']
 
         # need to add vertical spacing between buttons
         for i, label in enumerate(labels):
@@ -142,7 +149,7 @@ class Menu:
 
     def show(self, music):
         """Starts the main menu event loop. Returns the picked game mode"""
-        #music.play('menu')
+        music.play('menu')
         ui_manager = self.ui_manager
 
         while True:
@@ -160,9 +167,29 @@ class Menu:
                     if event.user_type == gui.UI_BUTTON_PRESSED:
                         # handle button events
                         if event.ui_element == self.play_sandbox_button:
+                            music.play('door_open')
+                            time.sleep(0.5)
+                            music.play('bell')
+                            time.sleep(1)
+                            music.play('game')
+                            music.play('door_close')
                             return 'sandbox'
-                        elif event.ui_element == self.play_ai_button:
-                            return 'ai'
+                        elif event.ui_element == self.play_ai_easy_button:
+                            music.play('door_open')
+                            time.sleep(0.5)
+                            music.play('bell')
+                            time.sleep(1)
+                            music.play('game')
+                            music.play('door_close')
+                            return 'ai_easy'
+                        elif event.ui_element == self.play_ai_hard_button:
+                            music.play('door_open')
+                            time.sleep(0.5)
+                            music.play('bell')
+                            time.sleep(1)
+                            music.play('game')
+                            music.play('door_close')
+                            return 'ai_hard'
                         elif event.ui_element == self.tutorial_button:
                             self.tutorial.show()
                         elif event.ui_element == self.settings_button:

@@ -25,11 +25,15 @@ class Settings:
             "game_music": os.path.join('assets', 'game_music.wav'),
         }
         self.sound_path = {
-            "coin_drop": os.path.join('assets', 'coin_drop_sound.wav')
+            "coin_drop": os.path.join('assets', 'coin_drop_sound.wav'),
+            "bell": os.path.join('assets', 'bell.wav'),
+            "plate": os.path.join('assets', 'plate.wav'),
+            "door_close": os.path.join('assets', 'door_close.wav'),
+            "door_open": os.path.join('assets', 'door_open.wav')
         }
 
         # board and coin settings, board size is (width,height), in pixels
-        self.coin_length = 60
+        self.coin_length = 50
         self.cell_size = (self.coin_length, self.coin_length)
         self.n_rows = 7
         self.n_cols = 7

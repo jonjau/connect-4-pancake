@@ -18,11 +18,13 @@ Sooyoung Jung
 Tianchen Lou
 
 ---------------------------
-I. Running the executable
+Running the executable
 ---------------------------
 
 
-# Running from source files
+---------------------------
+Running from source
+---------------------------
 
 1. Download Python 3.7+
 2. Run the following commands, in a virtual environment (conda/venv), or otherwise:
@@ -32,14 +34,12 @@ I. Running the executable
 
 
 
-
-
 ---------------------------
-III. Acknowledgements
+Acknowledgements
 ---------------------------
 sound files:
 
-- plate dropping sound: https://freesound.org/people/hinzebeat/sounds/275585/
+- plate sound: https://freesound.org/people/hinzebeat/sounds/275585/
 
 image files:
 

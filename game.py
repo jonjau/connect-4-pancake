@@ -1,6 +1,7 @@
 import itertools
 import math
 import sys
+import random
 
 import numpy as np
 
@@ -63,6 +64,7 @@ class Game:
         self.update_interface()
 
     def update_interface(self):
+        """Update the interface to say whose turn it currently is."""
 
         self.ui_elements['player'].set_text(
             f"{PLAYER_DICT[self.state]}'s turn.")
@@ -100,10 +102,8 @@ class Game:
 
         # add it to the group of coin sprites
         self.coins.add(Coin(self.settings, self.screen, self.state,
-                            start_pos, end_pos))
-
+                            start_pos, end_pos, self.music))
         
-        self.music.play("coin_drop")
         print(f"dropped at col {col}.")
 
         # place the current player's number at (row, col)
@@ -223,7 +223,7 @@ class Game:
                                end_pos[1] + board_xy[0])
 
                     self.coins.add(Coin(self.settings, self.screen, player,
-                                        start_pos, end_pos))
+                                        start_pos, end_pos, self.music))
                     self.music.play('coin_drop')
                     # update grid
                     board.grid[landing_row][col] = player
@@ -236,6 +236,7 @@ class Game:
         screen = self.screen
         settings = self.settings
         ui_manager = self.ui_manager
+        board = self.board
 
         angle = 0
         target_angle = 0
@@ -245,6 +246,16 @@ class Game:
 
         # main game loop
         is_running = True
+        handling_events = True
+        end_game_delay = 100
+
+        # AI mechanics
+        bot_mode = self.game_mode == "ai_easy" or self.game_mode == 'ai_hard'
+        difficulty = 0 # 0 for easy, 1 for hard
+        if self.game_mode == 'ai_hard':
+            difficulty = 1
+        bot_delay = 80
+
         while is_running:
             
             # keep framerate at 120 (not sure if this works)
@@ -257,68 +268,77 @@ class Game:
                     # close window clicked: stop the game
                     sys.exit()
 
-                if (event.type == pygame.MOUSEBUTTONDOWN and
-                        event.button == LEFT_MOUSE_BUTTON):
-                    # left mouse click detected: drop coin
-                    mouse_pos = pygame.mouse.get_pos()
-                    if in_board(self.board, mouse_pos):
-                        self.drop_coin(mouse_pos)
-                        if self.check_win():
-                            is_running = False
-                        else:
-                            self.next_turn()
+                if handling_events:
+                    if (event.type == pygame.MOUSEBUTTONDOWN and
+                            event.button == LEFT_MOUSE_BUTTON and
+                            (self.state == 1 or not bot_mode)):
+                        # left mouse click detected: drop coin
+                        mouse_pos = pygame.mouse.get_pos()
+                        bot_delay = 80
+                        if in_board(self.board, mouse_pos):
+                            self.drop_coin(mouse_pos)
+                            if self.check_win():
+                                handling_events = False
+                                is_running = False
+                            else:
+                                self.next_turn()
 
-                if (event.type == pygame.KEYDOWN):
-                    pressed_keys = pygame.key.get_pressed()
-                    if pressed_keys[K_q]:
-                        target_angle -= 90
-                        angle = target_angle + 90
-                        increment = -2.5
-                        is_rotating = True
-
-                    elif pressed_keys[K_w]:
-                        target_angle += 90
-                        angle = target_angle - 90
-                        increment = 2.5
-                        is_rotating = True
-
-                    elif pressed_keys[K_e]:
-                        target_angle += 180
-                        angle = target_angle - 180
-                        # rotate twice as fast
-                        increment = 5.0
-                        is_rotating = True
-                    
-                    elif pressed_keys[K_ESCAPE]:
-                        return
-
-                if event.type == pygame.USEREVENT:
-                    if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
-                        # handle button events: copy paste time
-                        if (event.ui_element ==
-                                self.ui_elements['rotate_90_clockwise']):
+                    if (event.type == pygame.KEYDOWN):
+                        pressed_keys = pygame.key.get_pressed()
+                        if pressed_keys[K_q]:
                             target_angle -= 90
                             angle = target_angle + 90
                             increment = -2.5
                             is_rotating = True
-                        elif (event.ui_element ==
-                                self.ui_elements['rotate_90_anticlockwise']):
+
+                        elif pressed_keys[K_w]:
                             target_angle += 90
                             angle = target_angle - 90
                             increment = 2.5
                             is_rotating = True
-                        elif (event.ui_element ==
-                                self.ui_elements['rotate_180']):
+
+                        elif pressed_keys[K_e]:
                             target_angle += 180
                             angle = target_angle - 180
+                            # rotate twice as fast
                             increment = 5.0
                             is_rotating = True
-                        elif event.ui_element == self.ui_elements['quit']:
+                    
+                        elif pressed_keys[K_ESCAPE]:
                             return
+
+                    if event.type == pygame.USEREVENT:
+                        if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                            # handle button events: copy paste time
+                            if (event.ui_element ==
+                                    self.ui_elements['rotate_90_clockwise']):
+                                target_angle -= 90
+                                angle = target_angle + 90
+                                increment = -2.5
+                                is_rotating = True
+                            elif (event.ui_element ==
+                                   self.ui_elements['rotate_90_anticlockwise']):
+                                target_angle += 90
+                                angle = target_angle - 90
+                                increment = 2.5
+                                is_rotating = True
+                            elif (event.ui_element ==
+                                    self.ui_elements['rotate_180']):
+                                target_angle += 180
+                                angle = target_angle - 180
+                                increment = 5.0
+                                is_rotating = True
+                            elif event.ui_element == self.ui_elements['quit']:
+                                return
 
                 # let pygame_gui handle internal UI events
                 ui_manager.process_events(event)
 
+            # AI mechanics
+            if bot_mode and self.state == 2 and not bot_delay:
+                self.call_AI(board, settings, difficulty)
+            else:
+                bot_delay -= 1
 
             if angle == target_angle:
                 if is_rotating:
@@ -327,13 +347,19 @@ class Game:
                     is_rotating = False
                     target_angle = 0
                     angle = 0
-
+                    bot_delay = 80
                     if self.check_win():
                         is_running = False
+                        handling_events = False
                     else:
                         self.next_turn()
             else:
                 angle += increment
+
+            if not handling_events and end_game_delay:
+                end_game_delay -= 1
+            elif not handling_events and not end_game_delay:
+                is_running = False
 
             # draw background before coins
             # self.update_background()
@@ -360,7 +386,7 @@ class Game:
             # of the board, THIS ONLY WORKS FOR A SQUARE BOARD, will need
             # changes for a rectangular board
             blit_rotate(screen, sub, pos, pos, angle, margin_x, margin_y)
-            
+
             # update the whole display Surface
             pygame.display.flip()
 
@@ -375,6 +401,92 @@ class Game:
                                 n_cols=self.original_n_cols,
                                 adjust=False)
         self.screen = pygame.display.set_mode(self.settings.screen_size)
+
+    def call_AI(self, board, settings, difficulty):
+        mouse_pos = (random.randint(
+                        settings.padding_left,
+                        settings.board_size[0] + settings.padding_left),
+                        settings.padding_y+1)
+        if difficulty == 0:
+            print(mouse_pos)
+            self.drop_coin(mouse_pos)
+            if self.check_win():
+                handling_events = False
+            else:
+                self.next_turn()
+        elif difficulty == 1:
+            # prioritise center area
+            for i in range(board.n_rows-1, 0, -1):
+                for j in range(board.n_cols//2 - 1, board.n_cols//2 + 1):
+                    if not board.grid[i][j] and i < 4:
+                        mouse_pos = (j*settings.coin_length, 0)
+                        break
+
+            # find 3's, try to complete
+            target_location = self.check_threes()
+            print(target_location)
+            if target_location:
+                if not board.grid[target_location[0], target_location[1]]:
+                    print('smart')
+                    mouse_pos = (target_location[0]*settings.coin_length, 0)
+
+            x_pos = mouse_pos[0]
+            col = int(math.floor(x_pos / board.cell_length))
+            print('AI dropped col ', col)
+            self.drop_coin(mouse_pos)
+
+    def check_threes(self):
+        connect_num = self.settings.connect_num
+        board = self.board
+        player = self.state
+        n_cols = board.n_cols
+        n_rows = board.n_rows
+
+        connect_num -= 1
+        # Check horizontal
+        for c in range(n_cols - (connect_num - 1)):
+            for r in range(n_rows):
+                count = 0
+                for i in range(connect_num):
+                    if board.grid[r][c+i] == player:
+                        count += 1
+                    if count == connect_num:
+                        print('hori')
+                        return [r, c+i]
+
+        # Check vertical
+        for c in range(n_cols):
+            for r in range(n_rows - (connect_num - 1)):
+                count = 0
+                for i in range(connect_num):
+                    if board.grid[r+i][c] == player:
+                        count += 1
+                    if count == connect_num:
+                        print('vert')
+                        return [r+i, c]
+
+        # Check left diagonal
+        for c in range(n_cols - (connect_num - 1)):
+            for r in range(n_rows - (connect_num - 1)):
+                count = 0
+                for i in range(connect_num):
+                    if board.grid[r+i][c+i] == player:
+                        count += 1
+                    if count == connect_num:
+                        print('l diag')
+                        return [r+i, c+i]
+
+        # Check right diagonal
+        for c in range(n_cols - (connect_num - 1)):
+            for r in range((connect_num - 1), n_rows):
+                count = 0
+                for i in range(connect_num):
+                    if board.grid[r-i][c+i] == player:
+                        count += 1
+                    if count == connect_num:
+                        print('r diag')
+                        return [r-i, c+i]
+        return False
 
 # functions that are less closely tied to game objects go below
 
@@ -406,10 +518,15 @@ def blit_rotate(surf, image, pos, originPos, angle, x, y):
     surf.blit(rotated_image, origin)
 
 
-def in_board(board, pos):
+def in_board(pos, settings):
     """returns True if pos (y, x) is within the board's Rect."""
+    x_pos = pos[0]
+    y_pos = pos[1]
 
-    return bool(board.rect.collidepoint(pos))
+    x_out = (x_pos < 0 or x_pos > settings.board_size[0])
+    y_out = (y_pos < 0 or y_pos > settings.board_size[0])
+
+    return x_out or y_out
 
 def closest_column(board, mouse_pos, settings):
     """
@@ -420,7 +537,10 @@ def closest_column(board, mouse_pos, settings):
     y_pos = mouse_pos[1] - settings.padding_top
 
     # restrict the clicked position to be within the board
-    if not in_board(board, mouse_pos):
+    if x_pos < 0 or x_pos > settings.board_size[0]:
+        return None
+
+    if y_pos < 0 or y_pos > settings.board_size[0]:
         return None
 
     col = int(math.floor(x_pos / board.cell_length))
