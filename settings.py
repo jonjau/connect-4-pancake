@@ -41,9 +41,9 @@ class Settings:
         self.connect_num = 4
 
         # screen settings: size is based on the board + background
-        self.padding_right = 300
+        self.padding_right = 500
         self.padding_left = 50
-        self.padding_y = 100
+        self.padding_y = 160
         self.padding_top = 20 + (self.padding_y / 2)
         self.screen_size = (
             self.n_cols * self.coin_length + self.padding_right,

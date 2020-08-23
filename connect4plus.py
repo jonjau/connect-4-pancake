@@ -13,7 +13,7 @@ def run():
     # create game process and set display size and title
     pygame.init()
     screen = pygame.display.set_mode(settings.screen_size)
-    pygame.display.set_caption("lorem ipsum")
+    pygame.display.set_caption("Connect 4 Pancake")
 
     clock = pygame.time.Clock()
     music = Music(settings)

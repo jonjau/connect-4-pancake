@@ -30,7 +30,7 @@ class Menu:
         title_image = pygame.image.load(settings.title_image_path)
 
         # menu layout settings
-        self.button_width = 0.5 * screen.get_width()
+        self.button_width = 0.3 * screen.get_width()
         self.button_height = 50
         self.button_vspace = self.button_height * 1.2
         self.button_size = (self.button_width, self.button_height)
@@ -258,8 +258,9 @@ class SettingsMenu:
         # render text labels, not drawn yet. These are non-pygame_gui.
         self.labels = {
             'title': fonts['large'].render('Settings', color)[0],
-            'rows': fonts['small'].render('Number of rows:', color)[0],
-            'cols': fonts['small'].render('Number of columns:', color)[0],
+            #'rows': fonts['small'].render('Number of rows:', color)[0],
+            'rows': fonts['small'].render('Board size:', color)[0],
+            #'cols': fonts['small'].render('Number of columns:', color)[0],
             'coins': fonts['small'].render('Number of coins needed to win:',
                                            color)[0],
         }
@@ -282,12 +283,12 @@ class SettingsMenu:
         self.rows_input.set_text_length_limit(limit=2)
         self.rows_input.set_text(str(settings.n_rows))
 
-        self.cols_input = gui.elements.ui_text_entry_line.UITextEntryLine(
-            relative_rect=self.input_rects['cols'][1],
-            manager=self.ui_manager)
-        self.cols_input.set_allowed_characters('numbers')
-        self.cols_input.set_text_length_limit(limit=2)
-        self.cols_input.set_text(str(settings.n_cols))
+        # self.cols_input = gui.elements.ui_text_entry_line.UITextEntryLine(
+        #     relative_rect=self.input_rects['cols'][1],
+        #     manager=self.ui_manager)
+        # self.cols_input.set_allowed_characters('numbers')
+        # self.cols_input.set_text_length_limit(limit=2)
+        # self.cols_input.set_text(str(settings.n_cols))
 
         self.coins_input = gui.elements.ui_text_entry_line.UITextEntryLine(
             relative_rect=self.input_rects['coins'][1],
@@ -316,7 +317,8 @@ class SettingsMenu:
         vspace = self.input_vspace
 
         rects = {}
-        labels = ['rows', 'cols', 'coins']
+        #labels = ['rows', 'cols', 'coins']
+        labels = ['rows', 'coins']
 
         # need to add vertical spacing between inputs
         for i, label in enumerate(labels):
@@ -332,16 +334,18 @@ class SettingsMenu:
         the game's `Settings` object.
         """
         n_rows = int(self.rows_input.get_text())
-        n_cols = int(self.cols_input.get_text())
+        #n_cols = int(self.cols_input.get_text())
         connect_num = int(self.coins_input.get_text())
 
         # don't save if any number is 0, otherwise there'll be division by 0
-        if n_rows == 0 or n_cols == 0 or connect_num == 0:
+        #if n_rows == 0 or n_cols == 0 or connect_num == 0:
+        if n_rows == 0  or connect_num == 0:
             return
 
         # modify connect win condition, and board size (hence screen size too)
         self.settings.connect_num = connect_num
-        self.settings.set_board_size(n_rows, n_cols)
+        #self.settings.set_board_size(n_rows, n_cols)
+        self.settings.set_board_size(n_rows, n_rows)
 
     def draw_labels(self):
         """
@@ -350,7 +354,7 @@ class SettingsMenu:
         """
         self.screen.blit(self.labels['title'], self.containers['topleft'])
         self.screen.blit(self.labels['rows'], self.input_rects['rows'][0])
-        self.screen.blit(self.labels['cols'], self.input_rects['cols'][0])
+        #self.screen.blit(self.labels['cols'], self.input_rects['cols'][0])
         self.screen.blit(self.labels['coins'], self.input_rects['coins'][0])
 
     def show(self):

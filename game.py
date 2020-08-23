@@ -6,10 +6,11 @@ import numpy as np
 
 import pygame
 from pygame.locals import *
+import pygame_gui
 
 from coin import Coin
 from board import Board
-from interface import GameOver
+from interface import Interface, GameOver
 from background import Background
 
 # mouse button constants as defined by pygame
@@ -18,6 +19,7 @@ RIGHT_MOUSE_BUTTON = 2
 
 # whose turn it currently is; player 1 is 1, player 2 is 2.
 GAME_STATES = itertools.cycle([1, 2])
+PLAYER_DICT = {1: "Yellow", 2: "Red"}
 
 
 class Game:
@@ -42,17 +44,29 @@ class Game:
 
         print(f"playing in game_mode: '{game_mode}'.")
 
-        # initially it is player 1's turn
-        self.state = next(GAME_STATES)
+        self.ui_manager = pygame_gui.UIManager(settings.screen_size)
+        self.interface = Interface(self.ui_manager, settings, screen, clock)
+        self.ui_elements = self.interface.init_elements()
 
         # create game objects, they aren't drawn yet
         self.coins = pygame.sprite.Group()
         self.board = Board(settings, screen)
         self.background = Background(settings, screen)
 
+        # initially it is player 1's turn
+        self.next_turn()
+
     def next_turn(self):
         """Go to the next turn."""
         self.state = next(GAME_STATES)
+        
+        self.update_interface()
+
+    def update_interface(self):
+
+        self.ui_elements['player'].set_text(
+            f"{PLAYER_DICT[self.state]}'s turn.")
+        
 
     def draw_background(self):
         """Draw the screen background, and the game board over it."""
@@ -89,13 +103,13 @@ class Game:
                             start_pos, end_pos))
 
         
+        self.music.play("coin_drop")
         print(f"dropped at col {col}.")
 
         # place the current player's number at (row, col)
         board.grid[row][col] = self.state
 
         print(board.grid)
-
 
 
     def update_coins(self):
@@ -181,12 +195,12 @@ class Game:
         settings.set_board_size(n_rows=n_rows, n_cols=n_cols, adjust=False)
         self.screen = pygame.display.set_mode(self.settings.screen_size)
 
-        # reset game board and coins
-        board = Board(self.settings, self.screen)
+        # reset board, coins, background
+        board = Board(settings, self.screen)
         self.board = board
         self.coins = pygame.sprite.Group()
         self.background = Background(settings, self.screen)
-        board_xy = (self.settings.padding_left, self.settings.padding_top)
+        board_xy = (settings.padding_left, settings.padding_top)
 
         # from the bottom row up: drop the floating coins
         for row in range(n_rows - 1, -1, -1):
@@ -221,6 +235,7 @@ class Game:
         music = self.music
         screen = self.screen
         settings = self.settings
+        ui_manager = self.ui_manager
 
         angle = 0
         target_angle = 0
@@ -233,7 +248,7 @@ class Game:
         while is_running:
             
             # keep framerate at 120 (not sure if this works)
-            clock.tick(120)
+            time_delta = clock.tick(120)/1000.0
 
             # handle events
             for event in pygame.event.get():
@@ -246,12 +261,12 @@ class Game:
                         event.button == LEFT_MOUSE_BUTTON):
                     # left mouse click detected: drop coin
                     mouse_pos = pygame.mouse.get_pos()
-                    self.drop_coin(mouse_pos)
-                    music.play("coin_drop")
-                    if self.check_win():
-                        is_running = False
-                    else:
-                        self.next_turn()
+                    if in_board(self.board, mouse_pos):
+                        self.drop_coin(mouse_pos)
+                        if self.check_win():
+                            is_running = False
+                        else:
+                            self.next_turn()
 
                 if (event.type == pygame.KEYDOWN):
                     pressed_keys = pygame.key.get_pressed()
@@ -273,6 +288,37 @@ class Game:
                         # rotate twice as fast
                         increment = 5.0
                         is_rotating = True
+                    
+                    elif pressed_keys[K_ESCAPE]:
+                        return
+
+                if event.type == pygame.USEREVENT:
+                    if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                        # handle button events: copy paste time
+                        if (event.ui_element ==
+                                self.ui_elements['rotate_90_clockwise']):
+                            target_angle -= 90
+                            angle = target_angle + 90
+                            increment = -2.5
+                            is_rotating = True
+                        elif (event.ui_element ==
+                                self.ui_elements['rotate_90_anticlockwise']):
+                            target_angle += 90
+                            angle = target_angle - 90
+                            increment = 2.5
+                            is_rotating = True
+                        elif (event.ui_element ==
+                                self.ui_elements['rotate_180']):
+                            target_angle += 180
+                            angle = target_angle - 180
+                            increment = 5.0
+                            is_rotating = True
+                        elif event.ui_element == self.ui_elements['quit']:
+                            return
+
+                # let pygame_gui handle internal UI events
+                ui_manager.process_events(event)
+
 
             if angle == target_angle:
                 if is_rotating:
@@ -293,6 +339,10 @@ class Game:
             # self.update_background()
             self.draw_background()
 
+            # update and draw ui elements
+            ui_manager.update(time_delta)
+            ui_manager.draw_ui(self.screen)
+
             # update coins' positions and draw them
             self.update_coins()
             self.draw_coins()
@@ -311,9 +361,6 @@ class Game:
             # changes for a rectangular board
             blit_rotate(screen, sub, pos, pos, angle, margin_x, margin_y)
             
-
-
-
             # update the whole display Surface
             pygame.display.flip()
 
@@ -359,7 +406,10 @@ def blit_rotate(surf, image, pos, originPos, angle, x, y):
     surf.blit(rotated_image, origin)
 
 
+def in_board(board, pos):
+    """returns True if pos (y, x) is within the board's Rect."""
 
+    return bool(board.rect.collidepoint(pos))
 
 def closest_column(board, mouse_pos, settings):
     """
@@ -370,14 +420,10 @@ def closest_column(board, mouse_pos, settings):
     y_pos = mouse_pos[1] - settings.padding_top
 
     # restrict the clicked position to be within the board
-    if x_pos < 0 or x_pos > settings.board_size[0]:
+    if not in_board(board, mouse_pos):
         return None
 
-    if y_pos < 0 or y_pos > settings.board_size[0]:
-        return None
-        
     col = int(math.floor(x_pos / board.cell_length))
-
 
     return col
 
