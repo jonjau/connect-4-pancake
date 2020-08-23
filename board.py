@@ -5,7 +5,7 @@ import numpy as np
 class Board:
     """Class representing the game board."""
 
-    def __init__(self, settings, screen, start_angle, end_angle):
+    def __init__(self, settings, screen):
         """Initialise the board and set its starting position."""
 
         self.settings = settings
@@ -23,13 +23,9 @@ class Board:
         # rects is a 2D list of Rects representing tiles on the board.
         self.rects = self.init_rect_grid()
 
-        self.rect = pygame.Rect((0, 0), settings.board_size)
-        #self.image = screen.subsurface(self.rect)
-        self.pos = (settings.board_size[0]//2, settings.board_size[1]//2)
-
-        self.angle = start_angle
-        self.end_angle = end_angle
-        self.is_rotating = False
+        self.rect = pygame.Rect(
+            (self.settings.padding_left, self.settings.padding_top),
+            settings.board_size)
 
         # load tile images, scaled to cell_size
         self.dark_tile_image = pygame.transform.scale(
@@ -57,7 +53,8 @@ class Board:
 
                 # arguments in order: left, top, width, height
                 rects[i][j] = pygame.Rect(
-                    i * cell_length, j * cell_length,
+                    i * cell_length,
+                    j * cell_length,
                     cell_length, cell_length)
 
         return rects
@@ -83,5 +80,4 @@ class Board:
 
     def draw(self):
         """Blit the board to the screen at its current position."""
-
         self.screen.blit(self.image, self.rect)

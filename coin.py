@@ -4,7 +4,7 @@ import pygame
 class Coin(pygame.sprite.Sprite):
     """Class representing a coin in the game."""
 
-    def __init__(self, settings, screen, state, start_pos, end_pos):
+    def __init__(self, settings, screen, state, start_pos, end_pos, music):
         """Initialise the coin and set its starting and ending position."""
 
         # construct the parent pygame.Sprite of this Coin
@@ -13,6 +13,7 @@ class Coin(pygame.sprite.Sprite):
         # each Coin owns a reference to screen
         self.screen = screen
 
+        self.music = music
         # load the coin image, and set its rect attribute
         image = pygame.image.load(settings.coin_image_paths[state])
         self.image = pygame.transform.scale(image, settings.cell_size)
@@ -42,6 +43,7 @@ class Coin(pygame.sprite.Sprite):
 
         if self.is_falling:
             if self.is_done_falling():
+                self.music.play('coin_drop')
                 self.is_falling = False
             else:
                 self.rect.y += (self.fall_speed)

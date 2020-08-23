@@ -1,9 +1,11 @@
 import sys
+import time
 
 import pygame
 import pygame.freetype
 
 import pygame_gui as gui
+from background import Background
 
 
 class Menu:
@@ -20,7 +22,7 @@ class Menu:
         self.screen = screen
         self.clock = clock
 
-        self.bg_color = settings.bg_color
+        self.background = Background(settings, screen)
         self.fonts = {
             "large": pygame.freetype.SysFont(name=None, size=32),
             "small": pygame.freetype.SysFont(name=None, size=16),
@@ -29,8 +31,8 @@ class Menu:
         title_image = pygame.image.load(settings.title_image_path)
 
         # menu layout settings
-        self.button_width = 0.5 * screen.get_width()
-        self.button_height = 50
+        self.button_width = 0.3 * screen.get_width()
+        self.button_height = 40
         self.button_vspace = self.button_height * 1.2
         self.button_size = (self.button_width, self.button_height)
         self.corner_button_size = (0.5 * self.button_width, self.button_height)
@@ -42,7 +44,7 @@ class Menu:
         # other pages are components of menu, they share much of menu's state
         self.tutorial = Tutorial(settings, screen, clock, self.containers)
         self.settings_menu = SettingsMenu(settings, screen, clock,
-                                          self.containers, self.fonts)
+                                        self.containers, self.fonts)
 
         # create menu elements, these will be drawn every frame
         self.title = gui.elements.UIImage(
@@ -50,9 +52,19 @@ class Menu:
             image_surface=title_image,
             manager=self.ui_manager)
 
-        self.play_button = gui.elements.UIButton(
-            relative_rect=self.button_rects['play'],
-            text='Play game',
+        self.play_sandbox_button = gui.elements.UIButton(
+            relative_rect=self.button_rects['play_sandbox'],
+            text='Play game in sandbox mode',
+            manager=self.ui_manager)
+
+        self.play_ai_easy_button = gui.elements.UIButton(
+            relative_rect=self.button_rects['play_ai_easy'],
+            text='Play game against easy AI',
+            manager=self.ui_manager)
+
+        self.play_ai_hard_button = gui.elements.UIButton(
+            relative_rect=self.button_rects['play_ai_hard'],
+            text='Play game against hard AI',
             manager=self.ui_manager)
 
         self.tutorial_button = gui.elements.UIButton(
@@ -92,7 +104,7 @@ class Menu:
         # within the menu container is a container for buttons, its width is
         # determined by the buttons' width and it has padding on top and bottom
         buttons = menu.inflate(self.button_width - menu.width,
-                               -self.button_vspace)
+                            -self.button_vspace)
 
         # container for elements at the corners, with margins
         margin = self.button_vspace
@@ -125,7 +137,8 @@ class Menu:
         vspace = self.button_vspace
 
         rects = {}
-        labels = ['play', 'tutorial', 'settings', 'quit']
+        labels = ['play_sandbox', 'play_ai_easy',
+                'play_ai_hard', 'tutorial', 'settings', 'quit']
 
         # need to add vertical spacing between buttons
         for i, label in enumerate(labels):
@@ -135,16 +148,15 @@ class Menu:
         return rects
 
     def show(self, music):
-        """Starts the main menu event loop."""
+        """Starts the main menu event loop. Returns the picked game mode"""
         music.play('menu')
         ui_manager = self.ui_manager
 
-        is_in_menu = True
-        while is_in_menu:
+        while True:
             time_delta = self.clock.tick(120)/1000.0
 
             # draw background
-            self.screen.fill(self.bg_color)
+            self.background.draw_main()
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -154,8 +166,30 @@ class Menu:
                 if event.type == pygame.USEREVENT:
                     if event.user_type == gui.UI_BUTTON_PRESSED:
                         # handle button events
-                        if event.ui_element == self.play_button:
-                            is_in_menu = False
+                        if event.ui_element == self.play_sandbox_button:
+                            music.play('door_open')
+                            time.sleep(0.5)
+                            music.play('bell')
+                            time.sleep(1)
+                            music.play('game')
+                            music.play('door_close')
+                            return 'sandbox'
+                        elif event.ui_element == self.play_ai_easy_button:
+                            music.play('door_open')
+                            time.sleep(0.5)
+                            music.play('bell')
+                            time.sleep(1)
+                            music.play('game')
+                            music.play('door_close')
+                            return 'ai_easy'
+                        elif event.ui_element == self.play_ai_hard_button:
+                            music.play('door_open')
+                            time.sleep(0.5)
+                            music.play('bell')
+                            time.sleep(1)
+                            music.play('game')
+                            music.play('door_close')
+                            return 'ai_hard'
                         elif event.ui_element == self.tutorial_button:
                             self.tutorial.show()
                         elif event.ui_element == self.settings_button:
@@ -185,10 +219,9 @@ class Tutorial:
         # shared state with main menu
         self.screen = screen
         self.clock = clock
-        self.bg_color = settings.bg_color
+        self.background = Background(settings, screen)
 
-        # TODO: placeholder tutorial image
-        tutorial_image = pygame.image.load(settings.title_image_path)
+        tutorial_image = pygame.image.load(settings.tutorial_image_path)
 
         # create UI elements: tutorial image takes up the whole window
         self.tutorial = gui.elements.UIImage(
@@ -244,15 +277,17 @@ class SettingsMenu:
         self.settings = settings
         self.screen = screen
         self.clock = clock
-        self.bg_color = settings.bg_color
+        self.background = Background(settings, screen)
         self.containers = containers
 
+        color = pygame.Color(249, 126, 5)
         # render text labels, not drawn yet. These are non-pygame_gui.
         self.labels = {
-            'title': fonts['large'].render('Settings')[0],
-            'rows': fonts['small'].render('Number of rows:')[0],
-            'cols': fonts['small'].render('Number of columns:')[0],
-            'coins': fonts['small'].render('Number of coins needed to win:')[0],
+            'title': fonts['large'].render('Settings', color)[0],
+            #'rows': fonts['small'].render('Number of rows:', color)[0],
+            'rows': fonts['small'].render('Board size:', color)[0],
+            #'cols': fonts['small'].render('Number of columns:', color)[0],
+            'coins': fonts['small'].render('Number of coins needed to win:', color)[0],
         }
 
         # slightly magical, but not tied to program logic: purely for layout
@@ -272,13 +307,6 @@ class SettingsMenu:
         self.rows_input.set_allowed_characters('numbers')
         self.rows_input.set_text_length_limit(limit=2)
         self.rows_input.set_text(str(settings.n_rows))
-
-        self.cols_input = gui.elements.ui_text_entry_line.UITextEntryLine(
-            relative_rect=self.input_rects['cols'][1],
-            manager=self.ui_manager)
-        self.cols_input.set_allowed_characters('numbers')
-        self.cols_input.set_text_length_limit(limit=2)
-        self.cols_input.set_text(str(settings.n_cols))
 
         self.coins_input = gui.elements.ui_text_entry_line.UITextEntryLine(
             relative_rect=self.input_rects['coins'][1],
@@ -307,7 +335,8 @@ class SettingsMenu:
         vspace = self.input_vspace
 
         rects = {}
-        labels = ['rows', 'cols', 'coins']
+        #labels = ['rows', 'cols', 'coins']
+        labels = ['rows', 'coins']
 
         # need to add vertical spacing between inputs
         for i, label in enumerate(labels):
@@ -323,16 +352,18 @@ class SettingsMenu:
         the game's `Settings` object.
         """
         n_rows = int(self.rows_input.get_text())
-        n_cols = int(self.cols_input.get_text())
+        #n_cols = int(self.cols_input.get_text())
         connect_num = int(self.coins_input.get_text())
 
         # don't save if any number is 0, otherwise there'll be division by 0
-        if n_rows == 0 or n_cols == 0 or connect_num == 0:
+        #if n_rows == 0 or n_cols == 0 or connect_num == 0:
+        if n_rows == 0  or connect_num == 0:
             return
 
         # modify connect win condition, and board size (hence screen size too)
         self.settings.connect_num = connect_num
-        self.settings.set_board_size(n_rows, n_cols)
+        #self.settings.set_board_size(n_rows, n_cols)
+        self.settings.set_board_size(n_rows, n_rows)
 
     def draw_labels(self):
         """
@@ -341,7 +372,7 @@ class SettingsMenu:
         """
         self.screen.blit(self.labels['title'], self.containers['topleft'])
         self.screen.blit(self.labels['rows'], self.input_rects['rows'][0])
-        self.screen.blit(self.labels['cols'], self.input_rects['cols'][0])
+        #self.screen.blit(self.labels['cols'], self.input_rects['cols'][0])
         self.screen.blit(self.labels['coins'], self.input_rects['coins'][0])
 
     def show(self):
@@ -354,7 +385,7 @@ class SettingsMenu:
             time_delta = self.clock.tick(120)/1000.0
 
             # draw background
-            self.screen.fill(self.bg_color)
+            self.background.draw_dark()
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:

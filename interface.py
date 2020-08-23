@@ -5,7 +5,109 @@ import pygame.freetype
 
 import pygame_gui
 
-PLAYER_DICT = {1: "Yellow", 2: "Red"}
+PLAYER_DICT = {1: "Blue", 2: "Red"}
+
+class Interface:
+    def __init__(self, ui_manager, settings, screen, clock):
+
+        self.ui_manager = ui_manager
+        self.screen = screen
+        self.clock = clock
+
+        self.padding_top = settings.padding_top
+        self.padding_right = settings.padding_right
+        self.interface_width = settings.padding_right - settings.padding_left
+        self.board_size = settings.board_size
+        self.margin = settings.padding_left * 2.5
+
+
+        self.containers = self.init_containers()
+
+        self.element_width = self.containers['interface'].width
+        self.element_height = 40
+        self.element_vspace = self.element_height * 1.2
+        self.element_size = (self.element_width, self.element_height)
+
+        self.element_rects = self.init_element_rects()
+
+
+    def init_containers(self):
+        """
+        Initialise and returns a dictionary of `Rect`'s representing
+        containers for interface elements.
+        """
+        width, height = self.screen.get_size()
+        root = pygame.Rect((0, 0), (width, height))
+
+        interface = pygame.Rect((0, 0),
+            (self.interface_width - 2 * self.margin, self.board_size[1]))
+        interface.topright = (width - self.margin, self.padding_top)
+
+        return {
+            "root": root,
+            "interface": interface
+        }
+
+
+    def init_element_rects(self):
+        """
+        Initialises and returns a dictionary of `Rect`'s representing
+        positions of UI elements.
+        """
+        topleft = self.containers['interface'].topleft
+        element_size = self.element_size
+        vspace = self.element_vspace
+
+        rects = {}
+        labels = ['player', 'rotate_90_clockwise',
+                  'rotate_90_anticlockwise', 'rotate_180', 'quit']
+
+        # need to add vertical spacing between buttons
+        for i, label in enumerate(labels):
+            rects[label] = pygame.Rect(
+                (topleft[0], topleft[1] + i * vspace), element_size)
+
+        return rects
+
+
+    def init_elements(self):
+        player_display = pygame_gui.elements.ui_label.UILabel(
+            relative_rect=self.element_rects['player'],
+            text="",
+            manager=self.ui_manager
+        )
+
+        rotate_90_clockwise_button = pygame_gui.elements.UIButton(
+            relative_rect=self.element_rects['rotate_90_clockwise'],
+            text="90 clockwise [Q]",
+            manager=self.ui_manager
+        )
+
+        rotate_90_anticlockwise_button = pygame_gui.elements.UIButton(
+            relative_rect=self.element_rects['rotate_90_anticlockwise'],
+            text="90 anticlockwise [W]",
+            manager=self.ui_manager
+        )
+
+        rotate_180_button = pygame_gui.elements.UIButton(
+            relative_rect=self.element_rects['rotate_180'],
+            text="180 flip [E]",
+            manager=self.ui_manager
+        )
+
+        quit_game_button = pygame_gui.elements.UIButton(
+            relative_rect=self.element_rects['quit'],
+            text="Quit game [Esc]",
+            manager=self.ui_manager
+        )
+
+        return {
+            "player": player_display,
+            "rotate_90_clockwise": rotate_90_clockwise_button,
+            "rotate_90_anticlockwise": rotate_90_anticlockwise_button,
+            "rotate_180": rotate_180_button,
+            "quit": quit_game_button
+        }
 
 
 class GameOver:
@@ -25,7 +127,7 @@ class GameOver:
         # visual layout parameters
         self.margin = 50
         self.button_size = (0.2 * screen.get_width(), 50)
-        self.window_side_length_ratio = 0.3
+        self.window_side_length_ratio = 0.5
 
         self.rects = self.init_rects()
 
@@ -58,7 +160,7 @@ class GameOver:
 
         # text container is around the top of the game over window, with padding
         text = window.inflate(-margin, -margin)
-        text.topleft = (window.y + 0.5 * margin, window.x + 0.5 * margin)
+        text.topleft = (window.x + 0.5 * margin, window.y + 0.5 * margin)
 
         # button container is around the mid bottom of the game over window,
         # with padding
