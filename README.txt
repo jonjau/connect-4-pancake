@@ -21,17 +21,35 @@ Tianchen Lou
 Running the executable
 ---------------------------
 
+executables a
 
 ---------------------------
 Running from source
 ---------------------------
 
-1. Download Python 3.7+
+Windows 10:
+
+1. Ensure Python 3.7+ is installed
 2. Run the following commands, in a virtual environment (conda/venv), or otherwise:
 
-   pip install -r requirements.txt
+   pip install numpy
+   pip install pygame
+   pip install pygame_gui
    python connect4plus.py
 
+
+Linux (Ubuntu 20.04):
+
+1. Ensure Python 3.7+ is installed
+2. Run (needs root access):
+   
+   sudo apt-install python3-pygame
+
+3. Run the following commands, in a virtual environment (conda/venv), or otherwise:
+
+   pip3 install numpy
+   pip3 install pygame_gui
+   python connect4plus.py
 
 
 ---------------------------

@@ -275,11 +275,12 @@ class Game:
                         # left mouse click detected: drop coin
                         mouse_pos = pygame.mouse.get_pos()
                         bot_delay = 80
-                        if in_board(self.board, mouse_pos):
+                        #if in_board(self.board, mouse_pos):
+                        print(mouse_pos)
+                        if in_board(board, mouse_pos):
                             self.drop_coin(mouse_pos)
                             if self.check_win():
                                 handling_events = False
-                                is_running = False
                             else:
                                 self.next_turn()
 
@@ -349,7 +350,6 @@ class Game:
                     angle = 0
                     bot_delay = 80
                     if self.check_win():
-                        is_running = False
                         handling_events = False
                     else:
                         self.next_turn()
@@ -518,15 +518,16 @@ def blit_rotate(surf, image, pos, originPos, angle, x, y):
     surf.blit(rotated_image, origin)
 
 
-def in_board(pos, settings):
+def in_board(board, pos, settings):
     """returns True if pos (y, x) is within the board's Rect."""
-    x_pos = pos[0]
-    y_pos = pos[1]
+    # x_pos = pos[0]
+    # y_pos = pos[1]
 
-    x_out = (x_pos < 0 or x_pos > settings.board_size[0])
-    y_out = (y_pos < 0 or y_pos > settings.board_size[0])
+    # x_out = (x_pos < 0 or x_pos > settings.board_size[0])
+    # y_out = (y_pos < 0 or y_pos > settings.board_size[0])
 
-    return x_out or y_out
+    # return not (x_out or y_out)
+    return bool(board.rect.collidepoint(pos))
 
 def closest_column(board, mouse_pos, settings):
     """

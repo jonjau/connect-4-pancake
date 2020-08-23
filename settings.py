@@ -16,6 +16,7 @@ class Settings:
             "light": os.path.join('assets', 'board_light.png'),
             "dark": os.path.join('assets', 'board_dark.png')
         }
+        self.tutorial_image_paths = os.path.join('assets', 'tutorialpage.PNG')
         self.title_image_path = os.path.join('assets', 'title.png')
         self.background_image_path = os.path.join('assets', 'background.png')
 

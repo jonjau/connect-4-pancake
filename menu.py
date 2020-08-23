@@ -221,8 +221,7 @@ class Tutorial:
         self.clock = clock
         self.background = Background(settings, screen)
 
-        # TODO: placeholder tutorial image
-        tutorial_image = pygame.image.load(settings.title_image_path)
+        tutorial_image = pygame.image.load(settings.tutorial_image_paths)
 
         # create UI elements: tutorial image takes up the whole window
         self.tutorial = gui.elements.UIImage(

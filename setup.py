@@ -3,7 +3,10 @@ from cx_Freeze import setup, Executable
 BUILD_EXE_OPTIONS = {"packages": ["numpy"]}
 
 # to prevent console from popping up
-EXE = [Executable("connect4plus.py", base="Win32GUI")]
+#EXE = [Executable("connect4plus.py", base="Win32GUI")]
+
+# linux
+EXE = [Executable("connect4plus.py")]
 
 setup(
     name="Connect 4 Pancake",
