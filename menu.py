@@ -4,6 +4,7 @@ import pygame
 import pygame.freetype
 
 import pygame_gui as gui
+from background import Background
 
 
 class Menu:
@@ -20,7 +21,7 @@ class Menu:
         self.screen = screen
         self.clock = clock
 
-        self.bg_color = settings.bg_color
+        self.background = Background(settings, screen)
         self.fonts = {
             "large": pygame.freetype.SysFont(name=None, size=32),
             "small": pygame.freetype.SysFont(name=None, size=16),
@@ -50,9 +51,14 @@ class Menu:
             image_surface=title_image,
             manager=self.ui_manager)
 
-        self.play_button = gui.elements.UIButton(
-            relative_rect=self.button_rects['play'],
-            text='Play game',
+        self.play_sandbox_button = gui.elements.UIButton(
+            relative_rect=self.button_rects['play_sandbox'],
+            text='Play game in sandbox mode',
+            manager=self.ui_manager)
+
+        self.play_ai_button = gui.elements.UIButton(
+            relative_rect=self.button_rects['play_ai'],
+            text='Play game against AI',
             manager=self.ui_manager)
 
         self.tutorial_button = gui.elements.UIButton(
@@ -125,7 +131,7 @@ class Menu:
         vspace = self.button_vspace
 
         rects = {}
-        labels = ['play', 'tutorial', 'settings', 'quit']
+        labels = ['play_sandbox', 'play_ai', 'tutorial', 'settings', 'quit']
 
         # need to add vertical spacing between buttons
         for i, label in enumerate(labels):
@@ -135,16 +141,15 @@ class Menu:
         return rects
 
     def show(self, music):
-        """Starts the main menu event loop."""
+        """Starts the main menu event loop. Returns the picked game mode"""
         #music.play('menu')
         ui_manager = self.ui_manager
 
-        is_in_menu = True
-        while is_in_menu:
+        while True:
             time_delta = self.clock.tick(120)/1000.0
 
             # draw background
-            self.screen.fill(self.bg_color)
+            self.screen.blit(self.background.image, (0, 0))
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -154,8 +159,10 @@ class Menu:
                 if event.type == pygame.USEREVENT:
                     if event.user_type == gui.UI_BUTTON_PRESSED:
                         # handle button events
-                        if event.ui_element == self.play_button:
-                            is_in_menu = False
+                        if event.ui_element == self.play_sandbox_button:
+                            return 'sandbox'
+                        elif event.ui_element == self.play_ai_button:
+                            return 'ai'
                         elif event.ui_element == self.tutorial_button:
                             self.tutorial.show()
                         elif event.ui_element == self.settings_button:
@@ -185,7 +192,7 @@ class Tutorial:
         # shared state with main menu
         self.screen = screen
         self.clock = clock
-        self.bg_color = settings.bg_color
+        self.background = Background(settings, screen)
 
         # TODO: placeholder tutorial image
         tutorial_image = pygame.image.load(settings.title_image_path)
@@ -244,15 +251,17 @@ class SettingsMenu:
         self.settings = settings
         self.screen = screen
         self.clock = clock
-        self.bg_color = settings.bg_color
+        self.background = Background(settings, screen)
         self.containers = containers
 
+        color = pygame.Color(0, 0, 0)
         # render text labels, not drawn yet. These are non-pygame_gui.
         self.labels = {
-            'title': fonts['large'].render('Settings')[0],
-            'rows': fonts['small'].render('Number of rows:')[0],
-            'cols': fonts['small'].render('Number of columns:')[0],
-            'coins': fonts['small'].render('Number of coins needed to win:')[0],
+            'title': fonts['large'].render('Settings', color)[0],
+            'rows': fonts['small'].render('Number of rows:', color)[0],
+            'cols': fonts['small'].render('Number of columns:', color)[0],
+            'coins': fonts['small'].render('Number of coins needed to win:',
+                                           color)[0],
         }
 
         # slightly magical, but not tied to program logic: purely for layout
@@ -354,7 +363,7 @@ class SettingsMenu:
             time_delta = self.clock.tick(120)/1000.0
 
             # draw background
-            self.screen.fill(self.bg_color)
+            self.screen.blit(self.background.image, (0, 0))
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:

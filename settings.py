@@ -13,10 +13,11 @@ class Settings:
             2: os.path.join('assets', 'coin2.png')
         }
         self.tile_image_paths = {
-            "light": os.path.join('assets', 'tile_light.png'),
-            "dark": os.path.join('assets', 'tile_dark.png')
+            "light": os.path.join('assets', 'board_light.png'),
+            "dark": os.path.join('assets', 'board_dark.png')
         }
         self.title_image_path = os.path.join('assets', 'title.png')
+        self.background_image_path = os.path.join('assets', 'background.png')
 
         # audio file paths
         self.music_path = {
@@ -28,7 +29,7 @@ class Settings:
         }
 
         # board and coin settings, board size is (width,height), in pixels
-        self.coin_length = 100
+        self.coin_length = 60
         self.cell_size = (self.coin_length, self.coin_length)
         self.n_rows = 7
         self.n_cols = 7
@@ -39,8 +40,14 @@ class Settings:
         # how many coins a player needs to connect to win
         self.connect_num = 4
 
-        # screen settings: for now the board takes up the whole game screen
-        self.screen_size = self.board_size
+        # screen settings: size is based on the board + background
+        self.padding_right = 300
+        self.padding_left = 50
+        self.padding_y = 100
+        self.padding_top = 20 + (self.padding_y / 2)
+        self.screen_size = (
+            self.n_cols * self.coin_length + self.padding_right,
+            self.n_rows * self.coin_length + self.padding_y)
         self.bg_color = (230, 230, 230)
 
     def set_board_size(self, n_rows, n_cols, adjust=True):
@@ -59,9 +66,11 @@ class Settings:
         self.coin_length = coin_length
         self.n_rows = n_rows
         self.n_cols = n_cols
-        
+
         self.board_size = (
             n_cols * self.coin_length,
             n_rows * self.coin_length)
 
-        self.screen_size = self.board_size
+        self.screen_size = (
+            n_cols * self.coin_length + self.padding_right,
+            n_rows * self.coin_length + self.padding_y)

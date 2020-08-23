@@ -7,6 +7,14 @@ import pygame_gui
 
 PLAYER_DICT = {1: "Yellow", 2: "Red"}
 
+class Interface:
+    def __init__(self, ui_manager, settings, screen, clock):
+
+        self.ui_manager = ui_manager
+        self.screen = screen
+        self.clock = clock
+
+        #self.player_display = 
 
 class GameOver:
     """
@@ -25,7 +33,7 @@ class GameOver:
         # visual layout parameters
         self.margin = 50
         self.button_size = (0.2 * screen.get_width(), 50)
-        self.window_side_length_ratio = 0.3
+        self.window_side_length_ratio = 0.5
 
         self.rects = self.init_rects()
 
@@ -58,7 +66,7 @@ class GameOver:
 
         # text container is around the top of the game over window, with padding
         text = window.inflate(-margin, -margin)
-        text.topleft = (window.y + 0.5 * margin, window.x + 0.5 * margin)
+        text.topleft = (window.x + 0.5 * margin, window.y + 0.5 * margin)
 
         # button container is around the mid bottom of the game over window,
         # with padding
