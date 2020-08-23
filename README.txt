@@ -1,4 +1,3 @@
-
  _____                             _       ___  ______                     _        
 /  __ \                           | |     /   | | ___ \                   | |       
 | /  \/ ___  _ __  _ __   ___  ___| |_   / /| | | |_/ /_ _ _ __   ___ __ _| | _____ 
@@ -21,7 +20,14 @@ Tianchen Lou
 Running the executable
 ---------------------------
 
-executables a
+Windows 10:
+
+
+
+
+Ubuntu 20.04:
+
+
 
 ---------------------------
 Running from source
@@ -38,7 +44,7 @@ Windows 10:
    python connect4plus.py
 
 
-Linux (Ubuntu 20.04):
+Ubuntu 20.04:
 
 1. Ensure Python 3.7+ is installed
 2. Run (needs root access):
@@ -57,13 +63,13 @@ Acknowledgements
 ---------------------------
 sound files:
 
-- plate sound: https://freesound.org/people/hinzebeat/sounds/275585/
+- sound effects: https://freesound.org
+- background music: https:/www.bensound.com
 
 image files:
 
 - pancake: https://www.flaticon.com/free-icon/pancake_1256465
 - teddy bear: https://www.flaticon.com/search/2?search-type=icons&word=teddy+bear
-
 
 
 ---------------------------

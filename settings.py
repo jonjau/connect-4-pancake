@@ -16,9 +16,11 @@ class Settings:
             "light": os.path.join('assets', 'board_light.png'),
             "dark": os.path.join('assets', 'board_dark.png')
         }
-        self.tutorial_image_paths = os.path.join('assets', 'tutorialpage.PNG')
         self.title_image_path = os.path.join('assets', 'title.png')
         self.background_image_path = os.path.join('assets', 'background.png')
+        self.background_main_image_path = os.path.join('assets', 'background_main.png')
+        self.background_dark_image_path = os.path.join('assets', 'background_dark.png')
+        self.tutorial_image_path = os.path.join('assets', 'tutorial.png')
 
         # audio file paths
         self.music_path = {
@@ -26,7 +28,6 @@ class Settings:
             "game_music": os.path.join('assets', 'game_music.wav'),
         }
         self.sound_path = {
-            "coin_drop": os.path.join('assets', 'coin_drop_sound.wav'),
             "bell": os.path.join('assets', 'bell.wav'),
             "plate": os.path.join('assets', 'plate.wav'),
             "door_close": os.path.join('assets', 'door_close.wav'),

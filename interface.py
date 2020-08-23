@@ -5,7 +5,7 @@ import pygame.freetype
 
 import pygame_gui
 
-PLAYER_DICT = {1: "Yellow", 2: "Red"}
+PLAYER_DICT = {1: "Blue", 2: "Red"}
 
 class Interface:
     def __init__(self, ui_manager, settings, screen, clock):

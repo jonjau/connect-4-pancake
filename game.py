@@ -20,7 +20,7 @@ RIGHT_MOUSE_BUTTON = 2
 
 # whose turn it currently is; player 1 is 1, player 2 is 2.
 GAME_STATES = itertools.cycle([1, 2])
-PLAYER_DICT = {1: "Yellow", 2: "Red"}
+PLAYER_DICT = {1: "Blue", 2: "Red"}
 
 
 class Game:
@@ -60,7 +60,7 @@ class Game:
     def next_turn(self):
         """Go to the next turn."""
         self.state = next(GAME_STATES)
-        
+
         self.update_interface()
 
     def update_interface(self):
@@ -68,12 +68,12 @@ class Game:
 
         self.ui_elements['player'].set_text(
             f"{PLAYER_DICT[self.state]}'s turn.")
-        
+
 
     def draw_background(self):
         """Draw the screen background, and the game board over it."""
 
-        self.screen.blit(self.background.image, (0, 0))
+        self.screen.blit(self.background.image_game, (0, 0))
         self.board.draw()
 
     def drop_coin(self, mouse_pos):
@@ -87,7 +87,7 @@ class Game:
             start_pos = board.rects[0][col].center
         except TypeError:
             return
-        
+
         start_pos = (start_pos[0] + board_xy[1], start_pos[1] + board_xy[0])
 
         # coin will fall to the next open row
@@ -103,7 +103,7 @@ class Game:
         # add it to the group of coin sprites
         self.coins.add(Coin(self.settings, self.screen, self.state,
                             start_pos, end_pos, self.music))
-        
+
         print(f"dropped at col {col}.")
 
         # place the current player's number at (row, col)
@@ -138,6 +138,8 @@ class Game:
             for r in range(n_rows):
                 count = 0
                 for i in range(connect_num):
+                    if board.grid[r][c] != 0:
+                        player = board.grid[r][c]
                     if board.grid[r][c+i] == player:
                         count += 1
                     if count == connect_num:
@@ -148,6 +150,8 @@ class Game:
             for r in range(n_rows - (connect_num - 1)):
                 count = 0
                 for i in range(connect_num):
+                    if board.grid[r][c] != 0:
+                        player = board.grid[r][c]
                     if board.grid[r+i][c] == player:
                         count += 1
                     if count == connect_num:
@@ -158,6 +162,8 @@ class Game:
             for r in range(n_rows - (connect_num - 1)):
                 count = 0
                 for i in range(connect_num):
+                    if board.grid[r][c] != 0:
+                        player = board.grid[r][c]                    
                     if board.grid[r+i][c+i] == player:
                         count += 1
                     if count == connect_num:
@@ -168,6 +174,8 @@ class Game:
             for r in range((connect_num - 1), n_rows):
                 count = 0
                 for i in range(connect_num):
+                    if board.grid[r][c] != 0:
+                        player = board.grid[r][c]
                     if board.grid[r-i][c+i] == player:
                         count += 1
                     if count == connect_num:
@@ -216,15 +224,15 @@ class Game:
 
                     start_pos = board.rects[row][col].center
                     start_pos = (start_pos[0] + board_xy[1],
-                                 start_pos[1] + board_xy[0])
+                                start_pos[1] + board_xy[0])
 
                     end_pos = board.rects[landing_row][col].center
                     end_pos = (end_pos[0] + board_xy[1],
-                               end_pos[1] + board_xy[0])
+                                end_pos[1] + board_xy[0])
 
                     self.coins.add(Coin(self.settings, self.screen, player,
                                         start_pos, end_pos, self.music))
-                    self.music.play('coin_drop')
+                    self.music.play('plate')
                     # update grid
                     board.grid[landing_row][col] = player
 
@@ -257,7 +265,7 @@ class Game:
         bot_delay = 80
 
         while is_running:
-            
+
             # keep framerate at 120 (not sure if this works)
             time_delta = clock.tick(120)/1000.0
 
@@ -275,10 +283,10 @@ class Game:
                         # left mouse click detected: drop coin
                         mouse_pos = pygame.mouse.get_pos()
                         bot_delay = 80
-                        #if in_board(self.board, mouse_pos):
-                        print(mouse_pos)
-                        if in_board(board, mouse_pos):
+                    
+                        if in_board(mouse_pos, self.board):
                             self.drop_coin(mouse_pos)
+                            self.music.play('plate')
                             if self.check_win():
                                 handling_events = False
                             else:
@@ -304,7 +312,7 @@ class Game:
                             # rotate twice as fast
                             increment = 5.0
                             is_rotating = True
-                    
+
                         elif pressed_keys[K_ESCAPE]:
                             return
 
@@ -318,7 +326,7 @@ class Game:
                                 increment = -2.5
                                 is_rotating = True
                             elif (event.ui_element ==
-                                   self.ui_elements['rotate_90_anticlockwise']):
+                                    self.ui_elements['rotate_90_anticlockwise']):
                                 target_angle += 90
                                 angle = target_angle - 90
                                 increment = 2.5
@@ -336,10 +344,11 @@ class Game:
                 ui_manager.process_events(event)
 
             # AI mechanics
-            if bot_mode and self.state == 2 and not bot_delay:
-                self.call_AI(board, settings, difficulty)
+            if bot_mode and self.state == 2 and not bot_delay and handling_events:
+                handling_events = self.call_bot(board, settings, difficulty)
             else:
                 bot_delay -= 1
+
 
             if angle == target_angle:
                 if is_rotating:
@@ -402,24 +411,28 @@ class Game:
                                 adjust=False)
         self.screen = pygame.display.set_mode(self.settings.screen_size)
 
-    def call_AI(self, board, settings, difficulty):
+
+    def call_bot(self, board, settings, difficulty):
         mouse_pos = (random.randint(
                         settings.padding_left,
                         settings.board_size[0] + settings.padding_left),
                         settings.padding_y+1)
+
         if difficulty == 0:
             print(mouse_pos)
             self.drop_coin(mouse_pos)
             if self.check_win():
-                handling_events = False
+                return False
             else:
                 self.next_turn()
+                return True
+
         elif difficulty == 1:
             # prioritise center area
             for i in range(board.n_rows-1, 0, -1):
                 for j in range(board.n_cols//2 - 1, board.n_cols//2 + 1):
                     if not board.grid[i][j] and i < 4:
-                        mouse_pos = (j*settings.coin_length, 0)
+                        mouse_pos = (j*settings.coin_length+settings.padding_left, settings.padding_y+1)
                         break
 
             # find 3's, try to complete
@@ -428,12 +441,18 @@ class Game:
             if target_location:
                 if not board.grid[target_location[0], target_location[1]]:
                     print('smart')
-                    mouse_pos = (target_location[0]*settings.coin_length, 0)
+                    mouse_pos = (target_location[0]*settings.coin_length + settings.padding_left, settings.padding_y+1)
 
             x_pos = mouse_pos[0]
             col = int(math.floor(x_pos / board.cell_length))
             print('AI dropped col ', col)
+
             self.drop_coin(mouse_pos)
+            if self.check_win():
+                return False
+            else:
+                self.next_turn()
+                return True
 
     def check_threes(self):
         connect_num = self.settings.connect_num
@@ -496,7 +515,7 @@ def blit_rotate(surf, image, pos, originPos, angle, x, y):
     # calcaulate the axis aligned bounding box of the rotated image
     w, h = image.get_size()
     box = [pygame.math.Vector2(p)
-           for p in [(x, -y), (x + w, -y), (x + w, -y - h), (x, -y - h)]]
+            for p in [(x, -y), (x + w, -y), (x + w, -y - h), (x, -y - h)]]
     box_rotate = [p.rotate(angle) for p in box]
     min_box = (min(box_rotate, key=lambda p: p[0])[0],
                 min(box_rotate, key=lambda p: p[1])[1])
@@ -517,23 +536,16 @@ def blit_rotate(surf, image, pos, originPos, angle, x, y):
     # rotate and blit the image
     surf.blit(rotated_image, origin)
 
-
-def in_board(board, pos, settings):
+def in_board(pos, board):
     """returns True if pos (y, x) is within the board's Rect."""
-    # x_pos = pos[0]
-    # y_pos = pos[1]
 
-    # x_out = (x_pos < 0 or x_pos > settings.board_size[0])
-    # y_out = (y_pos < 0 or y_pos > settings.board_size[0])
-
-    # return not (x_out or y_out)
     return bool(board.rect.collidepoint(pos))
 
 def closest_column(board, mouse_pos, settings):
     """
     Returns the column number in `board` closest to the given mouse position.
     """
-    
+
     x_pos = mouse_pos[0] - settings.padding_left
     y_pos = mouse_pos[1] - settings.padding_top
 

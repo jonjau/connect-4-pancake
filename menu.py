@@ -44,7 +44,7 @@ class Menu:
         # other pages are components of menu, they share much of menu's state
         self.tutorial = Tutorial(settings, screen, clock, self.containers)
         self.settings_menu = SettingsMenu(settings, screen, clock,
-                                          self.containers, self.fonts)
+                                        self.containers, self.fonts)
 
         # create menu elements, these will be drawn every frame
         self.title = gui.elements.UIImage(
@@ -104,7 +104,7 @@ class Menu:
         # within the menu container is a container for buttons, its width is
         # determined by the buttons' width and it has padding on top and bottom
         buttons = menu.inflate(self.button_width - menu.width,
-                               -self.button_vspace)
+                            -self.button_vspace)
 
         # container for elements at the corners, with margins
         margin = self.button_vspace
@@ -138,7 +138,7 @@ class Menu:
 
         rects = {}
         labels = ['play_sandbox', 'play_ai_easy',
-                  'play_ai_hard', 'tutorial', 'settings', 'quit']
+                'play_ai_hard', 'tutorial', 'settings', 'quit']
 
         # need to add vertical spacing between buttons
         for i, label in enumerate(labels):
@@ -156,7 +156,7 @@ class Menu:
             time_delta = self.clock.tick(120)/1000.0
 
             # draw background
-            self.screen.blit(self.background.image, (0, 0))
+            self.background.draw_main()
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -221,7 +221,7 @@ class Tutorial:
         self.clock = clock
         self.background = Background(settings, screen)
 
-        tutorial_image = pygame.image.load(settings.tutorial_image_paths)
+        tutorial_image = pygame.image.load(settings.tutorial_image_path)
 
         # create UI elements: tutorial image takes up the whole window
         self.tutorial = gui.elements.UIImage(
@@ -280,15 +280,14 @@ class SettingsMenu:
         self.background = Background(settings, screen)
         self.containers = containers
 
-        color = pygame.Color(0, 0, 0)
+        color = pygame.Color(249, 126, 5)
         # render text labels, not drawn yet. These are non-pygame_gui.
         self.labels = {
             'title': fonts['large'].render('Settings', color)[0],
             #'rows': fonts['small'].render('Number of rows:', color)[0],
             'rows': fonts['small'].render('Board size:', color)[0],
             #'cols': fonts['small'].render('Number of columns:', color)[0],
-            'coins': fonts['small'].render('Number of coins needed to win:',
-                                           color)[0],
+            'coins': fonts['small'].render('Number of coins needed to win:', color)[0],
         }
 
         # slightly magical, but not tied to program logic: purely for layout
@@ -308,13 +307,6 @@ class SettingsMenu:
         self.rows_input.set_allowed_characters('numbers')
         self.rows_input.set_text_length_limit(limit=2)
         self.rows_input.set_text(str(settings.n_rows))
-
-        # self.cols_input = gui.elements.ui_text_entry_line.UITextEntryLine(
-        #     relative_rect=self.input_rects['cols'][1],
-        #     manager=self.ui_manager)
-        # self.cols_input.set_allowed_characters('numbers')
-        # self.cols_input.set_text_length_limit(limit=2)
-        # self.cols_input.set_text(str(settings.n_cols))
 
         self.coins_input = gui.elements.ui_text_entry_line.UITextEntryLine(
             relative_rect=self.input_rects['coins'][1],
@@ -393,7 +385,7 @@ class SettingsMenu:
             time_delta = self.clock.tick(120)/1000.0
 
             # draw background
-            self.screen.blit(self.background.image, (0, 0))
+            self.background.draw_dark()
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
