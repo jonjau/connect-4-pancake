@@ -8,7 +8,12 @@
 A spin on Connect 4 :)
 =====================================================================================
 
-Made by "257% Korean" in August 2020 for UniJam 2020 (https://unijam.org.au/),
+https://jhan1.itch.io/connect-4-pancake
+
+Play a game of Connect 4 at this lovely pancake cafe, with a fun new twist!
+Rotate the board to create new strategies to out-connect your opponents!
+
+Made by "257 Korea" in August 2020 for UniJam 2020 (https://unijam.org.au/),
 a week-long game development hackathon at the University of Melbourne.
 
 Jonathan Jauhari
@@ -20,14 +25,11 @@ Tianchen Lou
 Running the executable
 ---------------------------
 
+in 'releases'
+
 Windows 10:
 
-
-
-
-Ubuntu 20.04:
-
-
+.\exe.win-amd64-3.7\connect4pancake.exe
 
 ---------------------------
 Running from source
@@ -76,7 +78,7 @@ image files:
 License
 ---------------------------
 
-Copyright (c) 2020 "257% Korean"
+Copyright (c) 2020 "257 Korea"
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
