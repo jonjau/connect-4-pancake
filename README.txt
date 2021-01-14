@@ -66,7 +66,7 @@ Acknowledgements
 sound files:
 
 - sound effects: https://freesound.org
-- background music: https:/www.bensound.com
+- background music: https://www.bensound.com
 
 image files:
 
